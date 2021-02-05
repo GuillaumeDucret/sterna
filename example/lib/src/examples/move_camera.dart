@@ -6,32 +6,30 @@ import 'package:flutter/material.dart';
 import 'package:sterna/projection.dart';
 import 'package:sterna/widgets.dart';
 
-class TrackMapControllerExample extends StatefulWidget {
+class MoveCameraExample extends StatefulWidget {
   @override
-  _TrackMapControllerExampleState createState() =>
-      _TrackMapControllerExampleState();
+  _MoveCameraExampleState createState() => _MoveCameraExampleState();
 
-  static final routeName = 'track_controller_route';
+  static final routeName = 'move_camera_route';
 }
 
-class _TrackMapControllerExampleState extends State<TrackMapControllerExample>
+class _MoveCameraExampleState extends State<MoveCameraExample>
     with SingleTickerProviderStateMixin {
   AnimationController _controller;
-  Animation<Latlng> _animation;
+  Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 20),
       vsync: this,
     );
 
-    _animation = Tween<Latlng>(
-      begin: Latlng(45.6391, 5.8800),
-      end: Latlng(45.5613, 5.9769),
-      //end: Latlng(45.5613, 5.9769),
+    _animation = Tween<double>(
+      begin: 360,
+      end: 270,
     ).animate(_controller);
 
     _animation.addStatusListener((status) {
@@ -47,22 +45,27 @@ class _TrackMapControllerExampleState extends State<TrackMapControllerExample>
   Widget build(BuildContext context) {
     return SternaMap(
       focalHeightRatio: 2 / 3,
-      controller: TrackMapController(cameraFocal: _animation),
-      //controller: MapController(initialCameraFocal: Latlng(45.6391, 5.9769)),
+      controller: TrackMapController(
+        initialCameraFocal: Latlng(45.6391, 5.9769),
+        initialCameraZoom: 12,
+        //initialCameraBearing: 45,
+        cameraBearing: _animation,
+      ),
       children: <Widget>[
         TileLayer(
           delegate: SimpleTileLayerChildDelegate(),
         ),
         Layer(children: <Widget>[
           Marker(
-            center: Latlng(45.6391, 5.8800),
+            center: Latlng(45.6391, 5.9769),
+            rotateWithCamera: true,
             painter: CircleMarkerPainter(),
           ),
         ]),
         MarkerLayer(
           delegate: MarkerLayerChildResolverDelegate(
             resolver: (bounds) async => BuilderBundle<Latlng>(
-              iterable: [Latlng(45.5613, 5.9769)].where(bounds.contains),
+              iterable: [Latlng(45.6391, 5.8800)].where(bounds.contains),
               builder: (_, latlng) => Marker(
                 center: latlng,
                 painter: CircleMarkerPainter(),

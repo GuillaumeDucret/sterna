@@ -4,7 +4,6 @@
 
 import 'package:flutter/widgets.dart';
 
-import '../../widgets.dart';
 import '../extension.dart';
 import '../projection.dart';
 import '../transformation.dart';
@@ -14,14 +13,18 @@ import 'map.dart';
 abstract class Bundle implements Listenable {
   Iterable<BundleEntry> get entries;
 
-  static final empty = IterableBundle(iterable: List.empty());
+  static final Bundle empty = IterableBundle(iterable: List.empty());
 }
 
-class BundleEntry {
-  final dynamic value;
-  final BundleWidgetBuilder<dynamic> builder;
+abstract class BundleEntry {
+  Widget build(BuildContext context);
+}
 
-  BundleEntry(this.value, this.builder);
+class BuilderBundleEntry<T> implements BundleEntry {
+  final T value;
+  final BundleWidgetBuilder<T> builder;
+
+  BuilderBundleEntry(this.value, this.builder);
 
   Widget build(BuildContext context) => builder(context, value);
 }
@@ -33,7 +36,7 @@ class IterableBundle<T> extends ChangeNotifier implements Bundle {
 
   Iterable<BundleEntry> get entries sync* {
     for (T value in _iterable) {
-      yield BundleEntry(value, build);
+      yield BuilderBundleEntry(value, build);
     }
   }
 
@@ -142,7 +145,7 @@ class _MarkerLayerState extends State<_MapStateAwareMarkerLayer> {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _bundle,
-      builder: (context, _) => LayerRenderObjectWidget(
+      builder: (context, _) => ViewportLayerRenderObjectWidget(
         transformation: widget.transformation,
         focalWidthRatio: widget.focalWidthRatio,
         focalHeightRatio: widget.focalHeightRatio,

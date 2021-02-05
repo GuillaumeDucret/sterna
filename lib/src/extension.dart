@@ -4,6 +4,8 @@
 
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
+
 extension RectangleExtension<T extends num> on Rectangle<T> {
   /// Returns a new rectangle with edges moved outwards by the given factor.
   Rectangle<T> scale(double factor) {
@@ -47,5 +49,14 @@ extension RectangleExtension<T extends num> on Rectangle<T> {
       return Rectangle<T>(zeroDouble, zeroDouble, zeroDouble, zeroDouble);
     }
     throw TypeError();
+  }
+}
+
+extension OffsetExtension on Offset {
+  Offset rotate(double radians) {
+    return Offset(
+      dx * cos(radians) - dy * sin(radians),
+      dy * cos(radians) + dx * sin(radians),
+    );
   }
 }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'package:example/src/examples/animate_camera.dart';
+import 'package:example/src/examples/move_camera.dart';
 import 'package:flutter/material.dart';
 
 import 'examples/track_controller.dart';
@@ -21,10 +23,22 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Text('Speed tape'),
+            title: Text('Track position'),
             onTap: () {
               Navigator.of(context)
                   .pushNamed(TrackMapControllerExample.routeName);
+            },
+          ),
+          ListTile(
+            title: Text('Move camera'),
+            onTap: () {
+              Navigator.of(context).pushNamed(MoveCameraExample.routeName);
+            },
+          ),
+          ListTile(
+            title: Text('Animate camera'),
+            onTap: () {
+              Navigator.of(context).pushNamed(AnimateCameraExample.routeName);
             },
           ),
         ],
@@ -70,8 +84,16 @@ class App extends StatelessWidget {
       initialRoute: TrackMapControllerExample.routeName,
       routes: {
         TrackMapControllerExample.routeName: (context) => AppPage(
-              title: 'Speed tape',
+              title: 'Track position',
               child: TrackMapControllerExample(),
+            ),
+        MoveCameraExample.routeName: (context) => AppPage(
+              title: 'Move camera',
+              child: MoveCameraExample(),
+            ),
+        AnimateCameraExample.routeName: (context) => AppPage(
+              title: 'Animate camera',
+              child: AnimateCameraExample(),
             ),
       },
     );

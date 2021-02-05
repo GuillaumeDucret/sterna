@@ -5,9 +5,33 @@
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
-import 'package:sterna/src/rendering/layer.dart';
-import 'package:sterna/src/transformation.dart';
-import 'package:sterna/src/widgets/map.dart';
+
+import '../rendering/layer.dart';
+import '../transformation.dart';
+import 'map.dart';
+
+class MapPositionned extends ParentDataWidget<LayerParentData> {
+  final Point<double> coordinates;
+
+  MapPositionned({
+    Key key,
+    this.coordinates,
+    Widget child,
+  }) : super(key: key, child: child);
+
+  @override
+  void applyParentData(RenderObject renderObject) {
+    final parentData = renderObject.parentData as LayerParentData;
+    parentData.center = coordinates;
+
+    final parentRenderObject =
+        renderObject.parent as RenderBox; // change to subtype
+    parentRenderObject.markNeedsPaint();
+  }
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => PlanLayerRenderObjectWidget;
+}
 
 class Layer extends StatelessWidget {
   final List<Widget> children;
@@ -21,7 +45,7 @@ class Layer extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = SternaMap.of(context);
 
-    return LayerRenderObjectWidget(
+    return ViewportLayerRenderObjectWidget(
       transformation: data.transformation,
       focalWidthRatio: data.focalWidthRatio,
       focalHeightRatio: data.focalHeightRatio,
@@ -31,13 +55,53 @@ class Layer extends StatelessWidget {
   }
 }
 
-class LayerRenderObjectWidget extends MultiChildRenderObjectWidget {
+class PlanLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
+  final Transformation transformation;
+  final double focalWidthRatio;
+  final double focalHeightRatio;
+  final int zoom;
+  final Point<double> focal;
+
+  PlanLayerRenderObjectWidget({
+    Key key,
+    this.transformation,
+    this.focalWidthRatio,
+    this.focalHeightRatio,
+    this.zoom,
+    this.focal,
+    List<Widget> children = const <Widget>[],
+  }) : super(key: key, children: children);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderPlanLayer(
+      transformation: transformation,
+      focalWidthRatio: focalWidthRatio,
+      focalHeightRatio: focalHeightRatio,
+      zoom: zoom,
+      focal: focal,
+    );
+  }
+
+  @override
+  void updateRenderObject(
+      BuildContext context, covariant RenderPlanLayer renderObject) {
+    renderObject
+      ..transformation = transformation
+      ..focalWidthRation = focalWidthRatio
+      ..focalHeightRation = focalHeightRatio
+      ..zoom = zoom
+      ..focal = focal;
+  }
+}
+
+class ViewportLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   final Transformation transformation;
   final double focalWidthRatio;
   final double focalHeightRatio;
   final MapState state;
 
-  LayerRenderObjectWidget({
+  ViewportLayerRenderObjectWidget({
     Key key,
     this.transformation,
     this.focalWidthRatio,
@@ -48,7 +112,7 @@ class LayerRenderObjectWidget extends MultiChildRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderLayer(
+    return RenderViewportLayer(
       transformation: transformation,
       focalWidthRatio: focalWidthRatio,
       focalHeightRatio: focalHeightRatio,
@@ -57,32 +121,11 @@ class LayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderLayer renderObject) {
+  void updateRenderObject(
+      BuildContext context, covariant RenderViewportLayer renderObject) {
     renderObject
       ..transformation = transformation
-      ..focalWidthRation = focalWidthRatio
-      ..focalHeightRation = focalHeightRatio;
+      ..focalWidthRatio = focalWidthRatio
+      ..focalHeightRatio = focalHeightRatio;
   }
-}
-
-class LayerPositionned extends ParentDataWidget<LayerParentData> {
-  final Point<double> coordinates;
-
-  LayerPositionned({
-    Key key,
-    this.coordinates,
-    Widget child,
-  }) : super(key: key, child: child);
-
-  @override
-  void applyParentData(RenderObject renderObject) {
-    final parentData = renderObject.parentData as LayerParentData;
-    parentData.center = coordinates;
-
-    final parentRenderObject = renderObject.parent as RenderLayer;
-    parentRenderObject.markNeedsPaint();
-  }
-
-  @override
-  Type get debugTypicalAncestorWidgetClass => LayerRenderObjectWidget;
 }

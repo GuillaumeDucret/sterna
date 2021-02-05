@@ -3,103 +3,86 @@
 // license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../projection.dart';
 import 'layer.dart';
 import 'map.dart';
 
-abstract class MarkerShape {
-  const MarkerShape();
+abstract class MarkerPainter extends CustomPainter {
+  int zoom;
 
-  Size getPreferredSize();
-
-  void paint(PaintingContext context, Offset offset);
-}
-
-class CircleMarkerShape extends MarkerShape {
-  const CircleMarkerShape();
+  Size get preferredSize;
 
   @override
-  Size getPreferredSize() {
-    return Size.fromRadius(5.0);
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    final canvas = context.canvas;
-    canvas.drawCircle(
-        offset,
-        5.0,
-        Paint()
-          ..color = Colors.yellow
-          ..strokeWidth = 1.5);
+  bool shouldRepaint(covariant MarkerPainter oldDelegate) {
+    return this.zoom != oldDelegate.zoom;
   }
 }
 
-class MarkerStyle {
-  final MarkerShape shape;
+class CircleMarkerPainter extends MarkerPainter {
+  final double radius;
+  final Color color;
 
-  const MarkerStyle({
-    this.shape = const CircleMarkerShape(),
+  CircleMarkerPainter({
+    this.radius = 5,
+    this.color = Colors.yellow,
   });
+
+  final _paint = Paint();
+
+  @override
+  Size get preferredSize {
+    return Size.fromRadius(radius);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _paint.color = color;
+    canvas.drawCircle(Offset.zero, radius, _paint);
+  }
 }
 
 class Marker extends StatelessWidget {
   final Latlng center;
-  final MarkerStyle style;
+  final bool rotateWithCamera;
+  final MarkerPainter painter;
+  final Widget child;
 
   const Marker({
     this.center,
-    this.style = const MarkerStyle(),
-  });
+    this.rotateWithCamera = false,
+    this.painter,
+    this.child,
+  }) : assert(painter != null || child != null);
 
   @override
   Widget build(BuildContext context) {
-    final mapState = SternaMap.of(context);
-    final coordinates = mapState.projection.projectCoordinates(center);
+    final data = SternaMap.of(context);
+    final coordinates = data.projection.projectCoordinates(center);
+    var result = child;
 
-    return LayerPositionned(
-      coordinates: coordinates,
-      child: _MarkerRenderObjectWidget(
-        style: style,
-      ),
-    );
-  }
-}
-
-class _MarkerRenderObjectWidget extends LeafRenderObjectWidget {
-  final MarkerStyle style;
-
-  const _MarkerRenderObjectWidget({this.style});
-
-  @override
-  RenderObject createRenderObject(BuildContext context) {
-    return _RenderMarker(style: style);
-  }
-}
-
-class _RenderMarker extends RenderBox {
-  MarkerStyle _style;
-
-  _RenderMarker({MarkerStyle style}) : _style = style;
-
-  MarkerStyle get style => _style;
-
-  set style(MarkerStyle style) {
-    if (style != _style) {
-      _style = style;
-      markNeedsLayout();
+    if (painter != null) {
+      result = AnimatedBuilder(
+        animation: data.state.camera,
+        builder: (_, __) => CustomPaint(
+          size: painter.preferredSize,
+          painter: painter..zoom = data.state.camera.zoom,
+          child: child,
+        ),
+      );
     }
-  }
 
-  @override
-  void performLayout() {
-    final shapeSize = _style.shape.getPreferredSize();
-    size = constraints.constrain(shapeSize);
-  }
+    if (rotateWithCamera) {
+      result = CameraRotationTransition(
+        camera: data.state.camera,
+        child: result,
+      );
+    }
 
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    _style.shape.paint(context, offset);
+    return MapPositionned(
+      coordinates: coordinates,
+      child: result,
+    );
   }
 }

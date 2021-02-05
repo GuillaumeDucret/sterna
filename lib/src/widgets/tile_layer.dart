@@ -6,8 +6,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:sterna/src/extension.dart';
 
+import '../extension.dart';
 import '../transformation.dart';
 import 'layer.dart';
 import 'map.dart';
@@ -111,15 +111,22 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
 
   @override
   Widget build(BuildContext context) {
-    return LayerRenderObjectWidget(
+    return CameraTransition(
       transformation: widget.transformation,
       focalWidthRatio: widget.focalWidthRatio,
       focalHeightRatio: widget.focalHeightRatio,
-      state: widget.state,
-      children: <Widget>[
-        for (var cell in _grid.cells)
-          widget.delegate.build(cell.x, cell.y, _zoom),
-      ],
+      camera: widget.state.camera,
+      child: PlanLayerRenderObjectWidget(
+        transformation: widget.transformation,
+        focalWidthRatio: widget.focalWidthRatio,
+        focalHeightRatio: widget.focalHeightRatio,
+        zoom: widget.state.camera.zoom,
+        focal: widget.state.camera.focal,
+        children: <Widget>[
+          for (var cell in _grid.cells)
+            widget.delegate.build(cell.x, cell.y, _zoom),
+        ],
+      ),
     );
   }
 }
@@ -139,7 +146,7 @@ class Tile extends StatelessWidget {
     final coordinates =
         transformation.worldCoordinatesFromTile(Point<int>(x, y), zoom: z);
 
-    return LayerPositionned(
+    return MapPositionned(
       coordinates: coordinates,
       child: Image.network(
         'https://a.tile.openstreetmap.org/$z/$x/$y.png',
