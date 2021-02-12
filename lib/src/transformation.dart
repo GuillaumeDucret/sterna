@@ -10,6 +10,8 @@ class Transformation {
 
   Transformation({this.tileSize = 256});
 
+  double scaleFromZoom(double zoom) => pow(2, zoom);
+
   Point<int> tileCoordinatesFromWorld(Point<double> coordinates, {int zoom}) {
     final scale = pow(2, zoom);
 
@@ -26,7 +28,7 @@ class Transformation {
     );
   }
 
-  Offset pixelOffsetFromWorld(Point<double> coordinates, {int zoom}) {
+  Offset pixelOffsetFromWorld(Point<double> coordinates, {double zoom}) {
     final scale = pow(2, zoom);
 
     return Offset(
@@ -35,7 +37,7 @@ class Transformation {
     );
   }
 
-  Rectangle<double> worldSizeFromPixels(Size size, {int zoom = 0}) {
+  Rectangle<double> worldSizeFromPixels(Size size, {double zoom = 0}) {
     final scale = pow(2, zoom);
 
     return Rectangle(
@@ -46,7 +48,7 @@ class Transformation {
     );
   }
 
-  Rectangle<double> worldSizeWithZoom(Rectangle size, {int zoom}) {
+  Rectangle<double> worldSizeWithZoom(Rectangle size, {double zoom}) {
     final scale = pow(2, zoom);
 
     return Rectangle(

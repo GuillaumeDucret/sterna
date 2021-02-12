@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 
 import '../extension.dart';
 import '../transformation.dart';
+import 'camera.dart';
 import 'layer.dart';
 import 'map.dart';
 
@@ -20,6 +21,7 @@ class SimpleTileLayerChildDelegate implements TileLayerChildDelegate {
   @override
   Widget build(int x, int y, int z) {
     return Tile(
+      key: ValueKey('$x$y$z'),
       x: x,
       y: y,
       z: z,
@@ -34,14 +36,14 @@ class TileLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = SternaMap.of(context);
+    final map = SternaMap.of(context);
 
     return _MapStateAwareTileLayer(
-      transformation: data.transformation,
-      focalWidthRatio: data.focalWidthRatio,
-      focalHeightRatio: data.focalHeightRatio,
+      transformation: map.transformation,
+      focalWidthRatio: map.focalWidthRatio,
+      focalHeightRatio: map.focalHeightRatio,
       delegate: delegate,
-      state: data.state,
+      state: map.state,
     );
   }
 }
@@ -69,6 +71,7 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
   var _innerBounds = RectangleExtension.zero<double>();
   var _grid = RectangleExtension.zero<int>();
   var _zoom = 0;
+  var _focal = Point<double>(0, 0);
 
   @override
   void initState() {
@@ -83,28 +86,24 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
   }
 
   void _refreshGrid() async {
-    if (!_innerBounds.containsPoint(widget.state.camera.focal)) {
-      final focalTileCoordinates =
-          widget.transformation.tileCoordinatesFromWorld(
-        widget.state.camera.focal,
-        zoom: widget.state.camera.zoom,
-      );
+    final focal = widget.state.camera.focal;
+    final zoom = widget.state.camera.zoom.truncate();
 
-      _innerBounds = widget.transformation.worldBoundsFromTile(
-        focalTileCoordinates,
-        zoom: widget.state.camera.zoom,
-      );
+    if (!_innerBounds.containsPoint(focal) || zoom != _zoom) {
+      final focalTileCoordinates =
+          widget.transformation.tileCoordinatesFromWorld(focal, zoom: zoom);
+
+      _innerBounds = widget.transformation
+          .worldBoundsFromTile(focalTileCoordinates, zoom: zoom);
 
       final grid = widget.transformation
-          .tileGridFromWorld(
-            widget.state.camera.bounds,
-            zoom: widget.state.camera.zoom,
-          )
+          .tileGridFromWorld(widget.state.camera.bounds, zoom: zoom)
           .inflate(1);
 
       setState(() {
         _grid = grid;
-        _zoom = widget.state.camera.zoom;
+        _zoom = zoom;
+        _focal = focal;
       });
     }
   }
@@ -116,17 +115,33 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
       focalWidthRatio: widget.focalWidthRatio,
       focalHeightRatio: widget.focalHeightRatio,
       camera: widget.state.camera,
+      initialFocal: _focal,
+      initialZoom: _zoom.toDouble(),
       child: PlanLayerRenderObjectWidget(
         transformation: widget.transformation,
         focalWidthRatio: widget.focalWidthRatio,
         focalHeightRatio: widget.focalHeightRatio,
-        zoom: widget.state.camera.zoom,
-        focal: widget.state.camera.focal,
+        zoom: _zoom.toDouble(),
+        focal: _focal,
         children: <Widget>[
           for (var cell in _grid.cells)
             widget.delegate.build(cell.x, cell.y, _zoom),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build2(BuildContext context) {
+    return ViewportLayerRenderObjectWidget(
+      transformation: widget.transformation,
+      focalWidthRatio: widget.focalWidthRatio,
+      focalHeightRatio: widget.focalHeightRatio,
+      state: widget.state,
+      children: <Widget>[
+        for (var cell in _grid.cells)
+          widget.delegate.build(cell.x, cell.y, _zoom),
+      ],
     );
   }
 }
@@ -136,7 +151,7 @@ class Tile extends StatelessWidget {
   final int y;
   final int z;
 
-  const Tile({this.x, this.y, this.z});
+  const Tile({Key key, this.x, this.y, this.z}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

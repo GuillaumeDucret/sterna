@@ -38,14 +38,14 @@ class RenderPlanLayer extends RenderLayer
   Transformation _transformation;
   double _focalWidthRatio;
   double _focalHeightRatio;
-  int _zoom;
+  double _zoom;
   Point<double> _focal;
 
   RenderPlanLayer({
     Transformation transformation,
     double focalWidthRatio,
     double focalHeightRatio,
-    int zoom,
+    double zoom,
     Point<double> focal,
   })  : _transformation = transformation,
         _focalWidthRatio = focalWidthRatio,
@@ -74,7 +74,7 @@ class RenderPlanLayer extends RenderLayer
     }
   }
 
-  set zoom(int zoom) {
+  set zoom(double zoom) {
     if (zoom != _zoom) {
       _zoom = zoom;
       markNeedsLayout();
@@ -87,6 +87,9 @@ class RenderPlanLayer extends RenderLayer
       markNeedsLayout();
     }
   }
+
+  @override
+  bool get isRepaintBoundary => true;
 
   @override
   void performLayout() {
@@ -161,6 +164,9 @@ class RenderViewportLayer extends RenderLayer {
       markNeedsLayout();
     }
   }
+
+  @override
+  bool get isRepaintBoundary => true;
 
   @override
   void performLayout() {

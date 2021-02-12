@@ -4,7 +4,9 @@
 
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+import 'package:sterna/src/foundation.dart';
 
 extension RectangleExtension<T extends num> on Rectangle<T> {
   /// Returns a new rectangle with edges moved outwards by the given factor.
@@ -58,5 +60,20 @@ extension OffsetExtension on Offset {
       dx * cos(radians) - dy * sin(radians),
       dy * cos(radians) + dx * sin(radians),
     );
+  }
+}
+
+extension PointExtension on Point {
+  Point<double> rotate(double radians) {
+    return Point<double>(
+      x * cos(radians) - y * sin(radians),
+      y * cos(radians) + x * sin(radians),
+    );
+  }
+}
+
+extension ListenableExtension on Listenable {
+  ValueListenable<T> when<T>(T Function() resolver) {
+    return WhenValueListenable(this, resolver);
   }
 }

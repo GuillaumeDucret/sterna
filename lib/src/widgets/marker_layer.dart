@@ -40,7 +40,10 @@ class IterableBundle<T> extends ChangeNotifier implements Bundle {
     }
   }
 
-  Widget build(BuildContext context, T value) {}
+  Widget build(BuildContext context, T value) {
+    throw UnimplementedError(
+        'Subclasses of IterableBundle must implement build()');
+  }
 }
 
 class BuilderBundle<T> extends IterableBundle<T> {
@@ -76,15 +79,15 @@ class MarkerLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = SternaMap.of(context);
+    final map = SternaMap.of(context);
 
     return _MapStateAwareMarkerLayer(
-      projection: data.projection,
-      transformation: data.transformation,
-      focalWidthRatio: data.focalWidthRatio,
-      focalHeightRatio: data.focalHeightRatio,
+      projection: map.projection,
+      transformation: map.transformation,
+      focalWidthRatio: map.focalWidthRatio,
+      focalHeightRatio: map.focalHeightRatio,
       delegate: delegate,
-      state: data.state,
+      state: map.state,
     );
   }
 }

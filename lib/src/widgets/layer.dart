@@ -13,7 +13,7 @@ import 'map.dart';
 class MapPositionned extends ParentDataWidget<LayerParentData> {
   final Point<double> coordinates;
 
-  MapPositionned({
+  const MapPositionned({
     Key key,
     this.coordinates,
     Widget child,
@@ -43,13 +43,13 @@ class Layer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = SternaMap.of(context);
+    final map = SternaMap.of(context);
 
     return ViewportLayerRenderObjectWidget(
-      transformation: data.transformation,
-      focalWidthRatio: data.focalWidthRatio,
-      focalHeightRatio: data.focalHeightRatio,
-      state: data.state,
+      transformation: map.transformation,
+      focalWidthRatio: map.focalWidthRatio,
+      focalHeightRatio: map.focalHeightRatio,
+      state: map.state,
       children: children,
     );
   }
@@ -59,7 +59,7 @@ class PlanLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   final Transformation transformation;
   final double focalWidthRatio;
   final double focalHeightRatio;
-  final int zoom;
+  final double zoom;
   final Point<double> focal;
 
   PlanLayerRenderObjectWidget({

@@ -3,10 +3,11 @@
 // license that can be found in the LICENSE file.
 
 import 'package:example/src/examples/animate_camera.dart';
-import 'package:example/src/examples/move_camera.dart';
+import 'package:example/src/examples/camera.dart';
+import 'package:example/src/examples/marker.dart';
+import 'package:example/src/examples/resolve_marker.dart';
+import 'package:example/src/examples/track_camera.dart';
 import 'package:flutter/material.dart';
-
-import 'examples/track_controller.dart';
 
 class AppDrawer extends StatelessWidget {
   @override
@@ -23,23 +24,30 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Text('Track position'),
-            onTap: () {
-              Navigator.of(context)
-                  .pushNamed(TrackMapControllerExample.routeName);
-            },
+            title: Text('Marker'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(MarkerExample.routeName),
           ),
           ListTile(
-            title: Text('Move camera'),
-            onTap: () {
-              Navigator.of(context).pushNamed(MoveCameraExample.routeName);
-            },
+            title: Text('Resolve Marker'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(ResolveMarkerExample.routeName),
+          ),
+          Divider(),
+          ListTile(
+            title: Text('Camera'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(CameraExample.routeName),
           ),
           ListTile(
             title: Text('Animate camera'),
-            onTap: () {
-              Navigator.of(context).pushNamed(AnimateCameraExample.routeName);
-            },
+            onTap: () =>
+                Navigator.of(context).pushNamed(AnimateCameraExample.routeName),
+          ),
+          ListTile(
+            title: Text('Track camera'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(TrackCameraExample.routeName),
           ),
         ],
       ),
@@ -81,19 +89,27 @@ class App extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: TrackMapControllerExample.routeName,
+      initialRoute: MarkerExample.routeName,
       routes: {
-        TrackMapControllerExample.routeName: (context) => AppPage(
-              title: 'Track position',
-              child: TrackMapControllerExample(),
+        MarkerExample.routeName: (_) => AppPage(
+              title: 'Marker',
+              child: MarkerExample(),
             ),
-        MoveCameraExample.routeName: (context) => AppPage(
-              title: 'Move camera',
-              child: MoveCameraExample(),
+        ResolveMarkerExample.routeName: (_) => AppPage(
+              title: 'Resolve marker',
+              child: ResolveMarkerExample(),
+            ),
+        CameraExample.routeName: (_) => AppPage(
+              title: 'Camera',
+              child: CameraExample(),
             ),
         AnimateCameraExample.routeName: (context) => AppPage(
               title: 'Animate camera',
               child: AnimateCameraExample(),
+            ),
+        TrackCameraExample.routeName: (context) => AppPage(
+              title: 'Track camera',
+              child: TrackCameraExample(),
             ),
       },
     );

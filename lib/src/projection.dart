@@ -8,7 +8,7 @@ class Latlng {
   final double latitude;
   final double longitude;
 
-  Latlng(this.latitude, this.longitude);
+  const Latlng(this.latitude, this.longitude);
 
   Latlng operator +(Latlng other) =>
       Latlng(latitude + other.latitude, longitude + other.longitude);

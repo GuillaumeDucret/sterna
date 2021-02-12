@@ -5,7 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../extension.dart';
 import '../projection.dart';
+import 'camera.dart';
 import 'layer.dart';
 import 'map.dart';
 
@@ -13,6 +15,7 @@ abstract class MarkerPainter extends CustomPainter {
   int zoom;
 
   Size get preferredSize;
+  bool get dependsOnZoom => false;
 
   @override
   bool shouldRepaint(covariant MarkerPainter oldDelegate) {
@@ -46,36 +49,52 @@ class CircleMarkerPainter extends MarkerPainter {
 class Marker extends StatelessWidget {
   final Latlng center;
   final bool rotateWithCamera;
+  final bool addRepaintBoundary;
   final MarkerPainter painter;
   final Widget child;
 
   const Marker({
     this.center,
     this.rotateWithCamera = false,
+    this.addRepaintBoundary = false,
     this.painter,
     this.child,
   }) : assert(painter != null || child != null);
 
   @override
   Widget build(BuildContext context) {
-    final data = SternaMap.of(context);
-    final coordinates = data.projection.projectCoordinates(center);
+    final map = SternaMap.of(context);
+    final coordinates = map.projection.projectCoordinates(center);
     var result = child;
 
     if (painter != null) {
-      result = AnimatedBuilder(
-        animation: data.state.camera,
-        builder: (_, __) => CustomPaint(
+      if (painter.dependsOnZoom) {
+        result = ValueListenableBuilder(
+          valueListenable: map.state.camera.when(() => map.state.camera.zoom),
+          builder: (_, zoom, __) => CustomPaint(
+            size: painter.preferredSize,
+            painter: painter..zoom = zoom.truncate(),
+            child: child,
+          ),
+        );
+      } else {
+        result = CustomPaint(
           size: painter.preferredSize,
-          painter: painter..zoom = data.state.camera.zoom,
+          painter: painter,
           child: child,
-        ),
-      );
+        );
+      }
     }
 
     if (rotateWithCamera) {
       result = CameraRotationTransition(
-        camera: data.state.camera,
+        camera: map.state.camera,
+        child: result,
+      );
+    }
+
+    if (addRepaintBoundary) {
+      result = RepaintBoundary(
         child: result,
       );
     }
