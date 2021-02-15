@@ -14,6 +14,8 @@ import 'map.dart';
 abstract class MarkerPainter extends CustomPainter {
   int zoom;
 
+  MarkerPainter({Listenable repaint}) : super(repaint: repaint);
+
   Size get preferredSize;
   bool get dependsOnZoom => false;
 

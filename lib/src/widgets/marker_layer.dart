@@ -20,13 +20,12 @@ abstract class BundleEntry {
   Widget build(BuildContext context);
 }
 
-class BuilderBundleEntry<T> implements BundleEntry {
-  final T value;
-  final BundleWidgetBuilder<T> builder;
+class BuilderBundleEntry implements BundleEntry {
+  final Widget Function(BuildContext context) builder;
 
-  BuilderBundleEntry(this.value, this.builder);
+  BuilderBundleEntry({this.builder});
 
-  Widget build(BuildContext context) => builder(context, value);
+  Widget build(BuildContext context) => builder(context);
 }
 
 class IterableBundle<T> extends ChangeNotifier implements Bundle {
@@ -36,7 +35,9 @@ class IterableBundle<T> extends ChangeNotifier implements Bundle {
 
   Iterable<BundleEntry> get entries sync* {
     for (T value in _iterable) {
-      yield BuilderBundleEntry(value, build);
+      yield BuilderBundleEntry(
+        builder: (context) => build(context, value),
+      );
     }
   }
 
@@ -47,15 +48,15 @@ class IterableBundle<T> extends ChangeNotifier implements Bundle {
 }
 
 class BuilderBundle<T> extends IterableBundle<T> {
-  final BundleWidgetBuilder<T> builder;
+  final Widget Function(BuildContext context, T value) builder;
 
-  BuilderBundle({Iterable<T> iterable, this.builder})
-      : super(iterable: iterable);
+  BuilderBundle({
+    Iterable<T> iterable,
+    this.builder,
+  }) : super(iterable: iterable);
 
   Widget build(BuildContext context, T value) => builder(context, value);
 }
-
-typedef BundleWidgetBuilder<T> = Widget Function(BuildContext context, T value);
 
 abstract class MarkerLayerChildDelegate {
   Future<Bundle> resolve(Bounds bounds);
