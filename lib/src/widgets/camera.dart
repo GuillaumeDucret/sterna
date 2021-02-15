@@ -122,7 +122,7 @@ class AnimatedCamera extends ImplicitlyAnimatedObject implements Camera {
     forEachTween((TweenVisitor visitor) {
       _focal = visitor(_focal, focal, (v) => Tween<Point<double>>(begin: v));
       _zoom = visitor(_zoom, zoom, (v) => Tween<double>(begin: v));
-      _bearing = visitor(_bearing, bearing, (v) => Tween<double>(begin: v));
+      _bearing = visitor(_bearing, bearing, (v) => ArcTween(begin: v));
     });
   }
 
@@ -131,7 +131,7 @@ class AnimatedCamera extends ImplicitlyAnimatedObject implements Camera {
     forEachTween((TweenVisitor visitor) {
       _focal = visitor(null, focal, (v) => Tween<Point<double>>(begin: v));
       _zoom = visitor(null, zoom, (v) => Tween<double>(begin: v));
-      _bearing = visitor(null, bearing, (v) => Tween<double>(begin: v));
+      _bearing = visitor(null, bearing, (v) => ArcTween(begin: v));
     });
   }
 

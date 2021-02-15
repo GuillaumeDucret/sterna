@@ -24,13 +24,14 @@ class _AnimateCameraExampleState extends State<AnimateCameraExample> {
     _mapController = MapController(
       initialCameraFocal: northernColonie,
       initialCameraZoom: 4,
+      initialCameraBearing: 45,
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // wait for controller to attach
       _mapController.animateCamera(
         focal: southernColonie,
-        bearing: 180,
+        bearing: 270,
         zoom: 3,
         duration: Duration(seconds: 10),
       );
