@@ -17,7 +17,7 @@ class ResolveMarkerExample extends StatelessWidget {
       ),
       children: <Widget>[
         TileLayer(
-          delegate: SimpleTileLayerChildDelegate(),
+          delegate: RasterTileLayerChildDelegate.osm(),
         ),
         MarkerLayer(
           delegate: MarkerLayerChildResolverDelegate(

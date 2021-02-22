@@ -17,14 +17,30 @@ abstract class TileLayerChildDelegate {
   Widget build(int x, int y, int z);
 }
 
-class SimpleTileLayerChildDelegate implements TileLayerChildDelegate {
+class RasterTileLayerChildDelegate implements TileLayerChildDelegate {
+  final ImageProvider Function(int x, int y, int z) resolver;
+
+  RasterTileLayerChildDelegate({
+    this.resolver,
+  });
+
+  RasterTileLayerChildDelegate.network(
+    String Function(int x, int y, int z) src, {
+    Map<String, String> headers,
+  }) : resolver = ((x, y, z) => NetworkImage(src(x, y, z), headers: headers));
+
+  RasterTileLayerChildDelegate.osm()
+      : resolver = ((x, y, z) =>
+            NetworkImage('https://a.tile.openstreetmap.org/$z/$x/$y.png'));
+
   @override
   Widget build(int x, int y, int z) {
-    return Tile(
+    return RasterTile(
       key: ValueKey('$x$y$z'),
       x: x,
       y: y,
       z: z,
+      image: resolver(x, y, z),
     );
   }
 }
@@ -76,6 +92,7 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
   @override
   void initState() {
     super.initState();
+    _refreshGrid();
     widget.state.camera.addListener(_refreshGrid);
   }
 
@@ -146,12 +163,19 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
   }
 }
 
-class Tile extends StatelessWidget {
+class RasterTile extends StatelessWidget {
   final int x;
   final int y;
   final int z;
+  final ImageProvider image;
 
-  const Tile({Key key, this.x, this.y, this.z}) : super(key: key);
+  const RasterTile({
+    Key key,
+    this.x,
+    this.y,
+    this.z,
+    this.image,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -163,8 +187,8 @@ class Tile extends StatelessWidget {
 
     return MapPositionned(
       coordinates: coordinates,
-      child: Image.network(
-        'https://a.tile.openstreetmap.org/$z/$x/$y.png',
+      child: Image(
+        image: image,
         width: transformation.tileSize.toDouble(),
         height: transformation.tileSize.toDouble(),
         alignment: Alignment.topLeft,

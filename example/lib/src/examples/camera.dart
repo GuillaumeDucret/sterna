@@ -18,7 +18,7 @@ class CameraExample extends StatelessWidget {
       ),
       children: <Widget>[
         TileLayer(
-          delegate: SimpleTileLayerChildDelegate(),
+          delegate: RasterTileLayerChildDelegate.osm(),
         ),
       ],
     );

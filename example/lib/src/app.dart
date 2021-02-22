@@ -4,6 +4,7 @@
 
 import 'package:example/src/examples/animate_camera.dart';
 import 'package:example/src/examples/camera.dart';
+import 'package:example/src/examples/fit_bounds.dart';
 import 'package:example/src/examples/marker.dart';
 import 'package:example/src/examples/resolve_marker.dart';
 import 'package:example/src/examples/track_camera.dart';
@@ -48,6 +49,12 @@ class AppDrawer extends StatelessWidget {
             title: Text('Track camera'),
             onTap: () =>
                 Navigator.of(context).pushNamed(TrackCameraExample.routeName),
+          ),
+          Divider(),
+          ListTile(
+            title: Text('Fit bounds'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(FitBoundsExample.routeName),
           ),
         ],
       ),
@@ -103,13 +110,17 @@ class App extends StatelessWidget {
               title: 'Camera',
               child: CameraExample(),
             ),
-        AnimateCameraExample.routeName: (context) => AppPage(
+        AnimateCameraExample.routeName: (_) => AppPage(
               title: 'Animate camera',
               child: AnimateCameraExample(),
             ),
-        TrackCameraExample.routeName: (context) => AppPage(
+        TrackCameraExample.routeName: (_) => AppPage(
               title: 'Track camera',
               child: TrackCameraExample(),
+            ),
+        FitBoundsExample.routeName: (_) => AppPage(
+              title: 'Fit bounds',
+              child: FitBoundsExample(),
             ),
       },
     );

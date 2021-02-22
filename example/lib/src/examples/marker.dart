@@ -16,7 +16,7 @@ class MarkerExample extends StatelessWidget {
       ),
       children: <Widget>[
         TileLayer(
-          delegate: SimpleTileLayerChildDelegate(),
+          delegate: RasterTileLayerChildDelegate.osm(),
         ),
         Layer(
           children: <Widget>[

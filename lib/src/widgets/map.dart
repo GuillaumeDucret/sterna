@@ -20,16 +20,20 @@ class MapController {
   /// bearing in degree
   final double initialCameraBearing;
 
+  Bounds _fitBounds;
+
   MapController({
     this.initialCameraFocal,
     this.initialCameraZoom = 11,
     this.initialCameraBearing = 0.0,
-  });
+    Bounds fitBounds,
+  }) : _fitBounds = fitBounds;
 
   MapState _state;
 
   void attach(MapState state) {
     _state = state;
+    _state.fitBounds(_fitBounds);
     _state.moveCamera(
       focal: initialCameraFocal,
       zoom: initialCameraZoom,
@@ -48,6 +52,11 @@ class MapController {
           {Latlng focal, double zoom, double bearing, Duration duration}) =>
       _state.animateCamera(
           focal: focal, zoom: zoom, bearing: bearing, duration: duration);
+
+  set fitBounds(Bounds bounds) {
+    _fitBounds = bounds;
+    _state.fitBounds(bounds);
+  }
 }
 
 class TrackMapController extends MapController {
@@ -107,7 +116,7 @@ class TrackMapController extends MapController {
   }
 }
 
-class SternaMap extends StatefulWidget {
+class SternaMap extends StatelessWidget {
   final MapController controller;
   final Projection projection;
   final Transformation transformation;
@@ -127,18 +136,56 @@ class SternaMap extends StatefulWidget {
         super(key: key);
 
   @override
-  State<StatefulWidget> createState() => MapState();
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (_, constraints) => _ViewportAwareMap(
+        controller: controller,
+        projection: projection,
+        transformation: transformation,
+        focalWidthRatio: focalWidthRatio,
+        focalHeightRatio: focalHeightRatio,
+        viewport: constraints.biggest,
+        children: children,
+      ),
+    );
+  }
 
   static MapData of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<MapData>();
   }
 }
 
-class MapState extends State<SternaMap> with SingleTickerProviderStateMixin {
+class _ViewportAwareMap extends StatefulWidget {
+  final MapController controller;
+  final Projection projection;
+  final Transformation transformation;
+  final double focalWidthRatio;
+  final double focalHeightRatio;
+  final Size viewport;
+  final List<Widget> children;
+
+  _ViewportAwareMap({
+    Key key,
+    this.controller,
+    this.projection,
+    this.transformation,
+    this.focalWidthRatio,
+    this.focalHeightRatio,
+    this.viewport,
+    this.children,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => MapState();
+}
+
+class MapState extends State<_ViewportAwareMap>
+    with SingleTickerProviderStateMixin {
   MovingCamera _movingCamera;
   AnimatedCamera _animatedCamera;
+  FitBoundsCamera _camera;
 
-  AnimatedCamera get camera => _animatedCamera;
+  Camera get camera => _camera;
 
   @override
   void initState() {
@@ -148,6 +195,7 @@ class MapState extends State<SternaMap> with SingleTickerProviderStateMixin {
       transformation: widget.transformation,
       focalWidthRatio: widget.focalWidthRatio,
       focalHeightRatio: widget.focalHeightRatio,
+      viewport: widget.viewport,
     );
 
     _animatedCamera = AnimatedCamera(
@@ -156,14 +204,15 @@ class MapState extends State<SternaMap> with SingleTickerProviderStateMixin {
       vsync: this,
     );
 
+    _camera = FitBoundsCamera(
+      camera: _animatedCamera,
+      transformation: widget.transformation,
+      focalWidthRatio: widget.focalWidthRatio,
+      focalHeightRatio: widget.focalHeightRatio,
+      viewport: widget.viewport,
+    );
+
     widget.controller.attach(this);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewportSize =
-          widget.transformation.worldSizeFromPixels(context.size);
-
-      _movingCamera.viewport = viewportSize;
-    });
   }
 
   @override
@@ -174,7 +223,7 @@ class MapState extends State<SternaMap> with SingleTickerProviderStateMixin {
   }
 
   @override
-  void didUpdateWidget(covariant SternaMap oldWidget) {
+  void didUpdateWidget(covariant _ViewportAwareMap oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (widget.controller != oldWidget.controller) {
@@ -182,9 +231,15 @@ class MapState extends State<SternaMap> with SingleTickerProviderStateMixin {
       widget.controller.attach(this);
     }
 
-    _movingCamera..transformation = widget.transformation;
+    _movingCamera
+      ..transformation = widget.transformation
+      ..viewport = widget.viewport;
 
-    _movingCamera.updateFocal(widget.focalWidthRatio, widget.focalHeightRatio);
+    _camera
+      ..transformation = widget.transformation
+      ..viewport = widget.viewport;
+
+    //_movingCamera.updateFocal(widget.focalWidthRatio, widget.focalHeightRatio);
   }
 
   @override
@@ -238,6 +293,16 @@ class MapState extends State<SternaMap> with SingleTickerProviderStateMixin {
         zoom: zoom,
         bearing: cameraBearing,
         duration: duration);
+  }
+
+  void fitBounds(Bounds bounds) {
+    Rectangle<double> cameraBounds;
+
+    if (bounds != null) {
+      cameraBounds = widget.projection.projectBounds(bounds);
+    }
+
+    _camera.fitBounds = cameraBounds;
   }
 }
 

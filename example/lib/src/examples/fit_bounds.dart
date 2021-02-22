@@ -3,18 +3,19 @@
 // license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:sterna/projection.dart';
 import 'package:sterna/widgets.dart';
 
 import '../arctic_tern.dart';
 
-class AnimateCameraExample extends StatefulWidget {
+class FitBoundsExample extends StatefulWidget {
   @override
-  _AnimateCameraExampleState createState() => _AnimateCameraExampleState();
+  _FitBoundsExampleState createState() => _FitBoundsExampleState();
 
-  static final routeName = 'animate_camera_route';
+  static final routeName = 'fit_bounds_route';
 }
 
-class _AnimateCameraExampleState extends State<AnimateCameraExample> {
+class _FitBoundsExampleState extends State<FitBoundsExample> {
   MapController _mapController;
 
   @override
@@ -22,17 +23,15 @@ class _AnimateCameraExampleState extends State<AnimateCameraExample> {
     super.initState();
 
     _mapController = MapController(
-      initialCameraFocal: northernColonie,
-      initialCameraZoom: 4,
-      initialCameraBearing: 45,
+      initialCameraFocal: nuuk,
+      initialCameraZoom: 6,
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // wait for controller to attach
+      _mapController.fitBounds =
+          Bounds.fromLatlngs(northernColonie, northernColonie);
       _mapController.animateCamera(
-        focal: southernColonie,
-        bearing: 270,
-        zoom: 3,
         duration: Duration(seconds: 10),
       );
     });

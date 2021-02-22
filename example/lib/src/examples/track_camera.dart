@@ -40,7 +40,7 @@ class _TrackCameraExampleState extends State<TrackCameraExample> {
       ),
       children: <Widget>[
         TileLayer(
-          delegate: SimpleTileLayerChildDelegate(),
+          delegate: RasterTileLayerChildDelegate.osm(),
         ),
       ],
     );

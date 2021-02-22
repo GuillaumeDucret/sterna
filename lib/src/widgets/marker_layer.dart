@@ -122,6 +122,7 @@ class _MarkerLayerState extends State<_MapStateAwareMarkerLayer> {
   @override
   void initState() {
     super.initState();
+    _refreshBounds();
     widget.state.camera.addListener(_refreshBounds);
   }
 

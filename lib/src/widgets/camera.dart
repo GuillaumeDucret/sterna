@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart' hide TweenVisitor;
 import 'package:sterna/src/animation.dart';
 import 'package:sterna/src/extension.dart';
@@ -14,16 +15,37 @@ abstract class Camera implements Listenable {
   Rectangle<double> get size;
   Rectangle<double> get bounds;
   move({Point<double> focal, double zoom, double bearing});
+  animate(
+      {Point<double> focal, double zoom, double bearing, Duration duration});
+}
+
+abstract class _CameraDelegate {
+  Camera get camera;
+}
+
+mixin _ProxyCameraMixin implements _CameraDelegate {
+  void addListener(void Function() listener) => camera.addListener(listener);
+
+  void removeListener(void Function() listener) =>
+      camera.removeListener(listener);
+
+  double get bearing => camera.bearing;
+
+  Rectangle<double> get bounds => camera.bounds;
+
+  Point<double> get focal => camera.focal;
+
+  Rectangle<double> get size => camera.size;
+
+  double get zoom => camera.zoom;
 }
 
 class MovingCamera extends ChangeNotifier implements Camera {
   Transformation transformation;
   double focalWidthRatio;
   double focalHeightRatio;
+  Size viewport;
 
-  /// Map viewport world size at zoom 0.
-  /// This equals the map widget size in pixels.
-  Rectangle<double> _viewport;
   Point<double> _focal;
   double _zoom;
 
@@ -34,6 +56,7 @@ class MovingCamera extends ChangeNotifier implements Camera {
     this.transformation,
     this.focalWidthRatio,
     this.focalHeightRatio,
+    this.viewport,
   })  : _focal = Point<double>(0, 0),
         _zoom = 0,
         _bearing = 0.0;
@@ -43,12 +66,10 @@ class MovingCamera extends ChangeNotifier implements Camera {
   double get bearing => _bearing;
 
   Rectangle<double> get size {
-    assert(_viewport != null);
-    return transformation.worldSizeWithZoom(_viewport, zoom: zoom);
+    return transformation.worldSizeFromPixels(viewport, zoom: zoom);
   }
 
   Rectangle<double> get bounds {
-    assert(_viewport != null);
     return Rectangle<double>(
       _focal.x - size.width * focalWidthRatio,
       _focal.y - size.height * focalHeightRatio,
@@ -94,16 +115,19 @@ class MovingCamera extends ChangeNotifier implements Camera {
     }
   }
 
-  set viewport(Rectangle<double> size) {
-    if (size != _viewport) {
-      _viewport = size;
-      notifyListeners();
-    }
-  }
+  @override
+  void animate(
+          {Point<double> focal,
+          double zoom,
+          double bearing,
+          Duration duration}) =>
+      move(focal: focal, zoom: zoom, bearing: bearing);
 }
 
-class AnimatedCamera extends ImplicitlyAnimatedObject implements Camera {
-  final MovingCamera camera;
+class AnimatedCamera extends ImplicitlyAnimatedObject
+    with _ProxyCameraMixin
+    implements Camera {
+  final Camera camera;
 
   AnimatedCamera({
     this.camera,
@@ -143,28 +167,103 @@ class AnimatedCamera extends ImplicitlyAnimatedObject implements Camera {
       bearing: _bearing?.evaluate(animation),
     );
   }
+}
+
+class FitBoundsCamera with _ProxyCameraMixin implements Camera {
+  final Camera camera;
+  Transformation transformation;
+  double focalWidthRatio;
+  double focalHeightRatio;
+  Size viewport;
+
+  FitBoundsCamera({
+    this.camera,
+    this.transformation,
+    this.focalWidthRatio,
+    this.focalHeightRatio,
+    this.viewport,
+  });
+
+  Rectangle<double> _fitBounds;
+  Rectangle<double> _innerBounds;
+  double _fitZoom;
+  bool _isFit = false;
+
+  set fitBounds(Rectangle<double> bounds) {
+    _fitBounds = bounds;
+    _innerBounds = null;
+    _fitZoom = null;
+    _isFit = false;
+  }
+
+  bool get hasFitBounds => _fitBounds != null;
+
+  double _zoomToFit(Point<double> focal, double maxZoom) {
+    focal ??= this.focal;
+    maxZoom ??= 15;
+
+    if (!(_innerBounds?.containsPoint(focal) ?? false)) {
+      final fitSize = Rectangle<double>(
+        0,
+        0,
+        max(
+          (focal.x - _fitBounds.left) / focalWidthRatio,
+          (-focal.x + _fitBounds.right) / (1 - focalWidthRatio),
+        ),
+        max(
+          (focal.y - _fitBounds.top) / focalHeightRatio,
+          (-focal.y + _fitBounds.bottom) / (1 - focalHeightRatio),
+        ),
+      );
+
+      _fitZoom = transformation.zoomToFitWorld(
+        fitSize.scale(1.5),
+        viewport: viewport,
+      );
+
+      final cameraFitSize = transformation.worldSizeFromPixels(
+        viewport,
+        zoom: _fitZoom,
+      );
+
+      _innerBounds = Rectangle<double>(
+        camera.focal.x - (cameraFitSize.width - fitSize.width) / 2,
+        camera.focal.y - (cameraFitSize.height - fitSize.height) / 2,
+        cameraFitSize.width - fitSize.width,
+        cameraFitSize.height - fitSize.height,
+      );
+    }
+
+    double result;
+    if (_fitZoom <= maxZoom) {
+      result = !_isFit ? _fitZoom : null;
+      _isFit = true;
+    } else {
+      result = maxZoom;
+      _isFit = false;
+    }
+    return result;
+  }
 
   @override
-  void addListener(void Function() listener) => camera.addListener(listener);
+  move({Point<double> focal, double zoom, double bearing}) {
+    camera.move(
+      focal: focal,
+      zoom: hasFitBounds ? _zoomToFit(focal, zoom) : zoom,
+      bearing: bearing,
+    );
+  }
 
   @override
-  void removeListener(void Function() listener) =>
-      camera.removeListener(listener);
-
-  @override
-  double get bearing => camera.bearing;
-
-  @override
-  Rectangle<double> get bounds => camera.bounds;
-
-  @override
-  Point<double> get focal => camera.focal;
-
-  @override
-  Rectangle<double> get size => camera.size;
-
-  @override
-  double get zoom => camera.zoom;
+  animate(
+      {Point<double> focal, double zoom, double bearing, Duration duration}) {
+    camera.animate(
+      focal: focal,
+      zoom: hasFitBounds ? _zoomToFit(focal, zoom) : zoom,
+      bearing: bearing,
+      duration: duration,
+    );
+  }
 }
 
 class CameraTransition extends AnimatedWidget {

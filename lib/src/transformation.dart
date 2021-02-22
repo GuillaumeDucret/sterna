@@ -48,15 +48,13 @@ class Transformation {
     );
   }
 
-  Rectangle<double> worldSizeWithZoom(Rectangle size, {double zoom}) {
-    final scale = pow(2, zoom);
-
-    return Rectangle(
-      0,
-      0,
-      size.width / scale,
-      size.height / scale,
+  double zoomToFitWorld(Rectangle size, {Size viewport}) {
+    final scale = min(
+      viewport.width / size.width,
+      viewport.height / size.height,
     );
+
+    return log(scale) / ln2;
   }
 
   Point<double> worldCoordinatesFromTile(Point<int> coordinates, {int zoom}) {
