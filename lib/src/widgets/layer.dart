@@ -47,8 +47,6 @@ class Layer extends StatelessWidget {
 
     return ViewportLayerRenderObjectWidget(
       transformation: map.transformation,
-      focalWidthRatio: map.focalWidthRatio,
-      focalHeightRatio: map.focalHeightRatio,
       state: map.state,
       children: children,
     );
@@ -57,18 +55,16 @@ class Layer extends StatelessWidget {
 
 class PlanLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
-  final double zoom;
   final Point<double> focal;
+  final double zoom;
+  final Alignment alignment;
 
   PlanLayerRenderObjectWidget({
     Key key,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
-    this.zoom,
     this.focal,
+    this.zoom,
+    this.alignment,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
 
@@ -76,10 +72,9 @@ class PlanLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     return RenderPlanLayer(
       transformation: transformation,
-      focalWidthRatio: focalWidthRatio,
-      focalHeightRatio: focalHeightRatio,
-      zoom: zoom,
       focal: focal,
+      zoom: zoom,
+      alignment: alignment,
     );
   }
 
@@ -88,24 +83,19 @@ class PlanLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
       BuildContext context, covariant RenderPlanLayer renderObject) {
     renderObject
       ..transformation = transformation
-      ..focalWidthRation = focalWidthRatio
-      ..focalHeightRation = focalHeightRatio
+      ..focal = focal
       ..zoom = zoom
-      ..focal = focal;
+      ..alignment = alignment;
   }
 }
 
 class ViewportLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final MapState state;
 
   ViewportLayerRenderObjectWidget({
     Key key,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.state,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
@@ -114,8 +104,6 @@ class ViewportLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     return RenderViewportLayer(
       transformation: transformation,
-      focalWidthRatio: focalWidthRatio,
-      focalHeightRatio: focalHeightRatio,
       state: state,
     );
   }
@@ -123,9 +111,6 @@ class ViewportLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   @override
   void updateRenderObject(
       BuildContext context, covariant RenderViewportLayer renderObject) {
-    renderObject
-      ..transformation = transformation
-      ..focalWidthRatio = focalWidthRatio
-      ..focalHeightRatio = focalHeightRatio;
+    renderObject..transformation = transformation;
   }
 }

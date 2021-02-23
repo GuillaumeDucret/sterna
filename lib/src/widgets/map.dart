@@ -20,12 +20,15 @@ class MapController {
   /// bearing in degree
   final double initialCameraBearing;
 
+  final Alignment initialCameraAlignment;
+
   Bounds _fitBounds;
 
   MapController({
     this.initialCameraFocal,
     this.initialCameraZoom = 11,
     this.initialCameraBearing = 0.0,
+    this.initialCameraAlignment = Alignment.center,
     Bounds fitBounds,
   }) : _fitBounds = fitBounds;
 
@@ -38,6 +41,7 @@ class MapController {
       focal: initialCameraFocal,
       zoom: initialCameraZoom,
       bearing: initialCameraBearing,
+      alignment: initialCameraAlignment,
     );
   }
 
@@ -45,13 +49,33 @@ class MapController {
     _state = null;
   }
 
-  void moveCamera({Latlng focal, double zoom, double bearing}) =>
-      _state.moveCamera(focal: focal, zoom: zoom, bearing: bearing);
+  void moveCamera({
+    Latlng focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+  }) =>
+      _state.moveCamera(
+        focal: focal,
+        zoom: zoom,
+        bearing: bearing,
+        alignment: alignment,
+      );
 
-  void animateCamera(
-          {Latlng focal, double zoom, double bearing, Duration duration}) =>
+  void animateCamera({
+    Latlng focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+    Duration duration,
+  }) =>
       _state.animateCamera(
-          focal: focal, zoom: zoom, bearing: bearing, duration: duration);
+        focal: focal,
+        zoom: zoom,
+        bearing: bearing,
+        alignment: alignment,
+        duration: duration,
+      );
 
   set fitBounds(Bounds bounds) {
     _fitBounds = bounds;
@@ -120,16 +144,12 @@ class SternaMap extends StatelessWidget {
   final MapController controller;
   final Projection projection;
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final List<Widget> children;
 
   SternaMap({
     Key key,
     this.controller,
     Projection projection,
-    this.focalWidthRatio = 0.5,
-    this.focalHeightRatio = 0.5,
     this.children,
   })  : projection = projection ?? WebMercatorProjection(),
         transformation = Transformation(),
@@ -142,8 +162,6 @@ class SternaMap extends StatelessWidget {
         controller: controller,
         projection: projection,
         transformation: transformation,
-        focalWidthRatio: focalWidthRatio,
-        focalHeightRatio: focalHeightRatio,
         viewport: constraints.biggest,
         children: children,
       ),
@@ -159,8 +177,6 @@ class _ViewportAwareMap extends StatefulWidget {
   final MapController controller;
   final Projection projection;
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final Size viewport;
   final List<Widget> children;
 
@@ -169,8 +185,6 @@ class _ViewportAwareMap extends StatefulWidget {
     this.controller,
     this.projection,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.viewport,
     this.children,
   }) : super(key: key);
@@ -193,8 +207,6 @@ class MapState extends State<_ViewportAwareMap>
 
     _movingCamera = MovingCamera(
       transformation: widget.transformation,
-      focalWidthRatio: widget.focalWidthRatio,
-      focalHeightRatio: widget.focalHeightRatio,
       viewport: widget.viewport,
     );
 
@@ -207,9 +219,6 @@ class MapState extends State<_ViewportAwareMap>
     _camera = FitBoundsCamera(
       camera: _animatedCamera,
       transformation: widget.transformation,
-      focalWidthRatio: widget.focalWidthRatio,
-      focalHeightRatio: widget.focalHeightRatio,
-      viewport: widget.viewport,
     );
 
     widget.controller.attach(this);
@@ -235,11 +244,7 @@ class MapState extends State<_ViewportAwareMap>
       ..transformation = widget.transformation
       ..viewport = widget.viewport;
 
-    _camera
-      ..transformation = widget.transformation
-      ..viewport = widget.viewport;
-
-    //_movingCamera.updateFocal(widget.focalWidthRatio, widget.focalHeightRatio);
+    _camera..transformation = widget.transformation;
   }
 
   @override
@@ -247,8 +252,6 @@ class MapState extends State<_ViewportAwareMap>
     return MapData(
       projection: widget.projection,
       transformation: widget.transformation,
-      focalWidthRatio: widget.focalWidthRatio,
-      focalHeightRatio: widget.focalHeightRatio,
       state: this,
       child: _MapRenderObjectWidget(
         children: widget.children,
@@ -256,7 +259,12 @@ class MapState extends State<_ViewportAwareMap>
     );
   }
 
-  void moveCamera({Latlng focal, double zoom, double bearing}) {
+  void moveCamera({
+    Latlng focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+  }) {
     Point<double> cameraFocal;
     double cameraBearing;
 
@@ -272,11 +280,17 @@ class MapState extends State<_ViewportAwareMap>
       focal: cameraFocal,
       zoom: zoom,
       bearing: cameraBearing,
+      alignment: alignment,
     );
   }
 
-  void animateCamera(
-      {Latlng focal, double zoom, double bearing, Duration duration}) {
+  void animateCamera({
+    Latlng focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+    Duration duration,
+  }) {
     Point<double> cameraFocal;
     double cameraBearing;
 
@@ -289,10 +303,12 @@ class MapState extends State<_ViewportAwareMap>
     }
 
     camera.animate(
-        focal: cameraFocal,
-        zoom: zoom,
-        bearing: cameraBearing,
-        duration: duration);
+      focal: cameraFocal,
+      zoom: zoom,
+      bearing: cameraBearing,
+      alignment: alignment,
+      duration: duration,
+    );
   }
 
   void fitBounds(Bounds bounds) {
@@ -309,16 +325,12 @@ class MapState extends State<_ViewportAwareMap>
 class MapData extends InheritedWidget {
   final Projection projection;
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final MapState state;
 
   MapData({
     Key key,
     this.projection,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.state,
     Widget child,
   }) : super(key: key, child: child);

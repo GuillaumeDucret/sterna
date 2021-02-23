@@ -12,11 +12,25 @@ abstract class Camera implements Listenable {
   Point<double> get focal;
   double get zoom;
   double get bearing;
+  Alignment get alignment;
   Rectangle<double> get size;
   Rectangle<double> get bounds;
-  move({Point<double> focal, double zoom, double bearing});
-  animate(
-      {Point<double> focal, double zoom, double bearing, Duration duration});
+  Size get viewport;
+
+  move({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+  });
+
+  animate({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+    Duration duration,
+  });
 }
 
 abstract class _CameraDelegate {
@@ -29,21 +43,17 @@ mixin _ProxyCameraMixin implements _CameraDelegate {
   void removeListener(void Function() listener) =>
       camera.removeListener(listener);
 
-  double get bearing => camera.bearing;
-
-  Rectangle<double> get bounds => camera.bounds;
-
   Point<double> get focal => camera.focal;
-
-  Rectangle<double> get size => camera.size;
-
   double get zoom => camera.zoom;
+  double get bearing => camera.bearing;
+  Alignment get alignment => camera.alignment;
+  Rectangle<double> get size => camera.size;
+  Rectangle<double> get bounds => camera.bounds;
+  Size get viewport => camera.viewport;
 }
 
 class MovingCamera extends ChangeNotifier implements Camera {
   Transformation transformation;
-  double focalWidthRatio;
-  double focalHeightRatio;
   Size viewport;
 
   Point<double> _focal;
@@ -52,47 +62,44 @@ class MovingCamera extends ChangeNotifier implements Camera {
   /// bearing in radian
   double _bearing;
 
+  Alignment _alignment;
+
   MovingCamera({
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.viewport,
   })  : _focal = Point<double>(0, 0),
         _zoom = 0,
-        _bearing = 0.0;
+        _bearing = 0.0,
+        _alignment = Alignment.center;
 
   Point<double> get focal => _focal;
   double get zoom => _zoom;
   double get bearing => _bearing;
+  Alignment get alignment => _alignment;
 
   Rectangle<double> get size {
     return transformation.worldSizeFromPixels(viewport, zoom: zoom);
   }
 
   Rectangle<double> get bounds {
+    final size = this.size;
+    final halfWidth = size.width / 2.0;
+    final halfHeight = size.height / 2.0;
+
     return Rectangle<double>(
-      _focal.x - size.width * focalWidthRatio,
-      _focal.y - size.height * focalHeightRatio,
+      _focal.x - (halfWidth + _alignment.x * halfWidth),
+      _focal.y - (halfHeight + _alignment.y * halfHeight),
       size.width,
       size.height,
     );
   }
 
-  void updateFocal(double newFocalWidthRatio, double newFocalHeightRatio) {
-    final focalDiff = Point<double>(
-      size.width * (newFocalWidthRatio - focalWidthRatio),
-      size.height * (newFocalHeightRatio - focalHeightRatio),
-    );
-
-    final focalRot = focalDiff.rotate(_bearing);
-
-    _focal = _focal + focalRot;
-
-    focalWidthRatio = newFocalWidthRatio;
-    focalHeightRatio = newFocalHeightRatio;
-  }
-
-  void move({Point<double> focal, double zoom, double bearing}) {
+  void move({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+  }) {
     var isChanged = false;
 
     if (focal != null && focal != _focal) {
@@ -110,18 +117,25 @@ class MovingCamera extends ChangeNotifier implements Camera {
       isChanged = true;
     }
 
+    if (alignment != null && alignment != _alignment) {
+      _alignment = alignment;
+      isChanged = true;
+    }
+
     if (isChanged) {
       notifyListeners();
     }
   }
 
   @override
-  void animate(
-          {Point<double> focal,
-          double zoom,
-          double bearing,
-          Duration duration}) =>
-      move(focal: focal, zoom: zoom, bearing: bearing);
+  void animate({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+    Duration duration,
+  }) =>
+      move(focal: focal, zoom: zoom, bearing: bearing, alignment: alignment);
 }
 
 class AnimatedCamera extends ImplicitlyAnimatedObject
@@ -138,24 +152,38 @@ class AnimatedCamera extends ImplicitlyAnimatedObject
   Tween<Point<double>> _focal;
   Tween<double> _zoom;
   Tween<double> _bearing;
+  Tween<Alignment> _alignment;
 
-  void animate(
-      {Point<double> focal, double zoom, double bearing, Duration duration}) {
+  void animate({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+    Duration duration,
+  }) {
     super.duration = duration;
 
     forEachTween((TweenVisitor visitor) {
       _focal = visitor(_focal, focal, (v) => Tween<Point<double>>(begin: v));
       _zoom = visitor(_zoom, zoom, (v) => Tween<double>(begin: v));
       _bearing = visitor(_bearing, bearing, (v) => ArcTween(begin: v));
+      _alignment =
+          visitor(_alignment, alignment, (v) => AlignmentTween(begin: v));
     });
   }
 
   @override
-  move({Point<double> focal, double zoom, double bearing}) {
+  move({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+  }) {
     forEachTween((TweenVisitor visitor) {
       _focal = visitor(null, focal, (v) => Tween<Point<double>>(begin: v));
       _zoom = visitor(null, zoom, (v) => Tween<double>(begin: v));
       _bearing = visitor(null, bearing, (v) => ArcTween(begin: v));
+      _alignment = visitor(null, alignment, (v) => AlignmentTween(begin: v));
     });
   }
 
@@ -165,6 +193,7 @@ class AnimatedCamera extends ImplicitlyAnimatedObject
       focal: _focal?.evaluate(animation),
       zoom: _zoom?.evaluate(animation),
       bearing: _bearing?.evaluate(animation),
+      alignment: _alignment?.evaluate(animation),
     );
   }
 }
@@ -172,16 +201,10 @@ class AnimatedCamera extends ImplicitlyAnimatedObject
 class FitBoundsCamera with _ProxyCameraMixin implements Camera {
   final Camera camera;
   Transformation transformation;
-  double focalWidthRatio;
-  double focalHeightRatio;
-  Size viewport;
 
   FitBoundsCamera({
     this.camera,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
-    this.viewport,
   });
 
   Rectangle<double> _fitBounds;
@@ -203,17 +226,16 @@ class FitBoundsCamera with _ProxyCameraMixin implements Camera {
     maxZoom ??= 15;
 
     if (!(_innerBounds?.containsPoint(focal) ?? false)) {
+      final leftHalfWidth = (focal.x - _fitBounds.left) / (1 + alignment.x);
+      final rightHalfWidth = (focal.x - _fitBounds.right) / (1 - alignment.x);
+      final topHalfWidth = (focal.y - _fitBounds.top) / (1 + alignment.y);
+      final bottomHalfWidth = (focal.y - _fitBounds.bottom) / (1 - alignment.y);
+
       final fitSize = Rectangle<double>(
         0,
         0,
-        max(
-          (focal.x - _fitBounds.left) / focalWidthRatio,
-          (-focal.x + _fitBounds.right) / (1 - focalWidthRatio),
-        ),
-        max(
-          (focal.y - _fitBounds.top) / focalHeightRatio,
-          (-focal.y + _fitBounds.bottom) / (1 - focalHeightRatio),
-        ),
+        max(leftHalfWidth, rightHalfWidth) * 2,
+        max(topHalfWidth, bottomHalfWidth) * 2,
       );
 
       _fitZoom = transformation.zoomToFitWorld(
@@ -246,21 +268,33 @@ class FitBoundsCamera with _ProxyCameraMixin implements Camera {
   }
 
   @override
-  move({Point<double> focal, double zoom, double bearing}) {
+  move({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+  }) {
     camera.move(
       focal: focal,
       zoom: hasFitBounds ? _zoomToFit(focal, zoom) : zoom,
       bearing: bearing,
+      alignment: alignment,
     );
   }
 
   @override
-  animate(
-      {Point<double> focal, double zoom, double bearing, Duration duration}) {
+  animate({
+    Point<double> focal,
+    double zoom,
+    double bearing,
+    Alignment alignment,
+    Duration duration,
+  }) {
     camera.animate(
       focal: focal,
       zoom: hasFitBounds ? _zoomToFit(focal, zoom) : zoom,
       bearing: bearing,
+      alignment: alignment,
       duration: duration,
     );
   }
@@ -268,24 +302,23 @@ class FitBoundsCamera with _ProxyCameraMixin implements Camera {
 
 class CameraTransition extends AnimatedWidget {
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final Widget child;
 
   final Point<double> _initialFocal;
   final double _initialZoom;
+  final Alignment _initialAlignment;
 
   CameraTransition({
     Key key,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     Point<double> initialFocal,
     double initialZoom,
+    Alignment initialAlignment,
     Camera camera,
     this.child,
   })  : _initialFocal = initialFocal ?? camera.focal,
         _initialZoom = initialZoom ?? camera.zoom,
+        _initialAlignment = initialAlignment ?? camera.alignment,
         super(key: key, listenable: camera);
 
   Camera get camera => listenable as Camera;
@@ -293,6 +326,9 @@ class CameraTransition extends AnimatedWidget {
   @override
   Widget build(BuildContext context) {
     final scale = transformation.scaleFromZoom(camera.zoom - _initialZoom);
+
+    final referenceFocalOffset = _initialAlignment.alongSize(camera.viewport);
+    final focalOffset = camera.alignment.alongSize(camera.viewport);
 
     final referenceFocalPixelOffset = transformation.pixelOffsetFromWorld(
       _initialFocal,
@@ -304,7 +340,10 @@ class CameraTransition extends AnimatedWidget {
       zoom: camera.zoom,
     );
 
-    final translation = focalPixelOffset - referenceFocalPixelOffset;
+    final translation = focalPixelOffset -
+        referenceFocalPixelOffset -
+        focalOffset +
+        referenceFocalOffset;
 
     final Matrix4 transform = Matrix4.rotationZ(-camera.bearing)
       ..translate(-translation.dx, -translation.dy)
@@ -312,23 +351,18 @@ class CameraTransition extends AnimatedWidget {
 
     return Transform(
       transform: transform,
-      alignment: Alignment(focalWidthRatio * 2 - 1, focalHeightRatio * 2 - 1),
+      alignment: camera.alignment,
       child: child,
     );
   }
 }
 
 class CameraRotationTransition extends AnimatedWidget {
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final bool inverse;
-
   final Widget child;
 
   CameraRotationTransition({
     Key key,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.inverse = false,
     Camera camera,
     this.child,

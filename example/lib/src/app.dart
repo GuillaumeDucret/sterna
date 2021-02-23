@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'package:example/src/examples/align_camera.dart';
 import 'package:example/src/examples/animate_camera.dart';
 import 'package:example/src/examples/camera.dart';
 import 'package:example/src/examples/fit_bounds.dart';
@@ -49,6 +50,11 @@ class AppDrawer extends StatelessWidget {
             title: Text('Track camera'),
             onTap: () =>
                 Navigator.of(context).pushNamed(TrackCameraExample.routeName),
+          ),
+          ListTile(
+            title: Text('Align camera'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(AlignCameraExample.routeName),
           ),
           Divider(),
           ListTile(
@@ -117,6 +123,10 @@ class App extends StatelessWidget {
         TrackCameraExample.routeName: (_) => AppPage(
               title: 'Track camera',
               child: TrackCameraExample(),
+            ),
+        AlignCameraExample.routeName: (_) => AppPage(
+              title: 'Align camera',
+              child: AlignCameraExample(),
             ),
         FitBoundsExample.routeName: (_) => AppPage(
               title: 'Fit bounds',

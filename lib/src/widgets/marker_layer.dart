@@ -85,8 +85,6 @@ class MarkerLayer extends StatelessWidget {
     return _MapStateAwareMarkerLayer(
       projection: map.projection,
       transformation: map.transformation,
-      focalWidthRatio: map.focalWidthRatio,
-      focalHeightRatio: map.focalHeightRatio,
       delegate: delegate,
       state: map.state,
     );
@@ -96,16 +94,12 @@ class MarkerLayer extends StatelessWidget {
 class _MapStateAwareMarkerLayer extends StatefulWidget {
   final Projection projection;
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final MarkerLayerChildDelegate delegate;
   final MapState state;
 
   _MapStateAwareMarkerLayer({
     this.projection,
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.delegate,
     this.state,
   });
@@ -152,8 +146,6 @@ class _MarkerLayerState extends State<_MapStateAwareMarkerLayer> {
       animation: _bundle,
       builder: (context, _) => ViewportLayerRenderObjectWidget(
         transformation: widget.transformation,
-        focalWidthRatio: widget.focalWidthRatio,
-        focalHeightRatio: widget.focalHeightRatio,
         state: widget.state,
         children: <Widget>[
           for (var entry in _bundle.entries) entry.build(context),

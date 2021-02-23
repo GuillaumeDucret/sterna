@@ -56,8 +56,6 @@ class TileLayer extends StatelessWidget {
 
     return _MapStateAwareTileLayer(
       transformation: map.transformation,
-      focalWidthRatio: map.focalWidthRatio,
-      focalHeightRatio: map.focalHeightRatio,
       delegate: delegate,
       state: map.state,
     );
@@ -66,15 +64,11 @@ class TileLayer extends StatelessWidget {
 
 class _MapStateAwareTileLayer extends StatefulWidget {
   final Transformation transformation;
-  final double focalWidthRatio;
-  final double focalHeightRatio;
   final TileLayerChildDelegate delegate;
   final MapState state;
 
   _MapStateAwareTileLayer({
     this.transformation,
-    this.focalWidthRatio,
-    this.focalHeightRatio,
     this.delegate,
     this.state,
   });
@@ -86,8 +80,9 @@ class _MapStateAwareTileLayer extends StatefulWidget {
 class _TileLayerState extends State<_MapStateAwareTileLayer> {
   var _innerBounds = RectangleExtension.zero<double>();
   var _grid = RectangleExtension.zero<int>();
-  var _zoom = 0;
   var _focal = Point<double>(0, 0);
+  var _zoom = 0;
+  var _alignment = Alignment.center;
 
   @override
   void initState() {
@@ -105,6 +100,7 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
   void _refreshGrid() async {
     final focal = widget.state.camera.focal;
     final zoom = widget.state.camera.zoom.truncate();
+    final alignment = widget.state.camera.alignment;
 
     if (!_innerBounds.containsPoint(focal) || zoom != _zoom) {
       final focalTileCoordinates =
@@ -119,8 +115,9 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
 
       setState(() {
         _grid = grid;
-        _zoom = zoom;
         _focal = focal;
+        _zoom = zoom;
+        _alignment = alignment;
       });
     }
   }
@@ -129,36 +126,20 @@ class _TileLayerState extends State<_MapStateAwareTileLayer> {
   Widget build(BuildContext context) {
     return CameraTransition(
       transformation: widget.transformation,
-      focalWidthRatio: widget.focalWidthRatio,
-      focalHeightRatio: widget.focalHeightRatio,
       camera: widget.state.camera,
       initialFocal: _focal,
       initialZoom: _zoom.toDouble(),
+      initialAlignment: _alignment,
       child: PlanLayerRenderObjectWidget(
         transformation: widget.transformation,
-        focalWidthRatio: widget.focalWidthRatio,
-        focalHeightRatio: widget.focalHeightRatio,
-        zoom: _zoom.toDouble(),
         focal: _focal,
+        zoom: _zoom.toDouble(),
+        alignment: _alignment,
         children: <Widget>[
           for (var cell in _grid.cells)
             widget.delegate.build(cell.x, cell.y, _zoom),
         ],
       ),
-    );
-  }
-
-  @override
-  Widget build2(BuildContext context) {
-    return ViewportLayerRenderObjectWidget(
-      transformation: widget.transformation,
-      focalWidthRatio: widget.focalWidthRatio,
-      focalHeightRatio: widget.focalHeightRatio,
-      state: widget.state,
-      children: <Widget>[
-        for (var cell in _grid.cells)
-          widget.delegate.build(cell.x, cell.y, _zoom),
-      ],
     );
   }
 }

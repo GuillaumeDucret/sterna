@@ -36,22 +36,19 @@ abstract class RenderLayer extends RenderBox
 class RenderPlanLayer extends RenderLayer
     with RenderBoxContainerDefaultsMixin<RenderBox, LayerParentData> {
   Transformation _transformation;
-  double _focalWidthRatio;
-  double _focalHeightRatio;
-  double _zoom;
   Point<double> _focal;
+  double _zoom;
+  Alignment _alignment;
 
   RenderPlanLayer({
     Transformation transformation,
-    double focalWidthRatio,
-    double focalHeightRatio,
-    double zoom,
     Point<double> focal,
+    double zoom,
+    Alignment alignment,
   })  : _transformation = transformation,
-        _focalWidthRatio = focalWidthRatio,
-        _focalHeightRatio = focalHeightRatio,
+        _focal = focal,
         _zoom = zoom,
-        _focal = focal;
+        _alignment = alignment;
 
   set transformation(Transformation transformation) {
     if (transformation != _transformation) {
@@ -60,16 +57,9 @@ class RenderPlanLayer extends RenderLayer
     }
   }
 
-  set focalWidthRation(double ratio) {
-    if (ratio != _focalWidthRatio) {
-      _focalWidthRatio = ratio;
-      markNeedsLayout();
-    }
-  }
-
-  set focalHeightRation(double ratio) {
-    if (ratio != _focalHeightRatio) {
-      _focalHeightRatio = ratio;
+  set focal(Point<double> focal) {
+    if (focal != _focal) {
+      _focal = focal;
       markNeedsLayout();
     }
   }
@@ -81,9 +71,9 @@ class RenderPlanLayer extends RenderLayer
     }
   }
 
-  set focal(Point<double> focal) {
-    if (focal != _focal) {
-      _focal = focal;
+  set alignment(Alignment alignment) {
+    if (alignment != _alignment) {
+      _alignment = alignment;
       markNeedsLayout();
     }
   }
@@ -93,10 +83,7 @@ class RenderPlanLayer extends RenderLayer
 
   @override
   void performLayout() {
-    final focalOffset = Offset(
-      size.width * _focalWidthRatio,
-      size.height * _focalHeightRatio,
-    );
+    final focalOffset = _alignment.alongSize(size);
 
     final focalPixelOffset = _transformation.pixelOffsetFromWorld(
       _focal,
@@ -127,21 +114,14 @@ class RenderPlanLayer extends RenderLayer
 
 class RenderViewportLayer extends RenderLayer {
   Transformation _transformation;
-  double _focalWidthRatio;
-  double _focalHeightRatio;
   final MapState _state;
 
-  Offset _focalOffset;
   Rect _bounds;
 
   RenderViewportLayer({
     Transformation transformation,
-    double focalWidthRatio,
-    double focalHeightRatio,
     MapState state,
   })  : _transformation = transformation,
-        _focalWidthRatio = focalWidthRatio,
-        _focalHeightRatio = focalHeightRatio,
         _state = state;
 
   set transformation(Transformation transformation) {
@@ -151,30 +131,11 @@ class RenderViewportLayer extends RenderLayer {
     }
   }
 
-  set focalWidthRatio(double ratio) {
-    if (ratio != _focalWidthRatio) {
-      _focalWidthRatio = ratio;
-      markNeedsLayout();
-    }
-  }
-
-  set focalHeightRatio(double ratio) {
-    if (ratio != _focalHeightRatio) {
-      _focalHeightRatio = ratio;
-      markNeedsLayout();
-    }
-  }
-
   @override
   bool get isRepaintBoundary => true;
 
   @override
   void performLayout() {
-    _focalOffset = Offset(
-      size.width * _focalWidthRatio,
-      size.height * _focalHeightRatio,
-    );
-
     _bounds = Rect.fromLTWH(0, 0, size.width, size.height);
 
     RenderBox child = firstChild;
@@ -199,6 +160,8 @@ class RenderViewportLayer extends RenderLayer {
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    final focalOffset = _state.camera.alignment.alongSize(size);
+
     final focalPixelOffset = _transformation.pixelOffsetFromWorld(
       _state.camera.focal,
       zoom: _state.camera.zoom,
@@ -215,7 +178,7 @@ class RenderViewportLayer extends RenderLayer {
 
       final childOffsetFromFocal = childPixelOffset - focalPixelOffset;
       final childOffset =
-          childOffsetFromFocal.rotate(-_state.camera.bearing) + _focalOffset;
+          childOffsetFromFocal.rotate(-_state.camera.bearing) + focalOffset;
 
       if (_bounds.contains(childOffset)) {
         context.paintChild(child, childOffset + offset);
