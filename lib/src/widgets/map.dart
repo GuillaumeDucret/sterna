@@ -13,6 +13,27 @@ import '../rendering/map.dart';
 import '../transformation.dart';
 import 'camera.dart';
 
+class BoundingBox {
+  Set<Rectangle<double>> _rectangles = <Rectangle<double>>{};
+
+  void addBounds(Rectangle<double> bounds) => _rectangles.add(bounds);
+  void removeBounds(Rectangle<double> bounds) => _rectangles.remove(bounds);
+
+  bool get hasBounds => _rectangles.isNotEmpty;
+
+  Rectangle<double> get box {
+    Rectangle<double> result;
+    for (final bounds in _rectangles) {
+      if (result == null) {
+        result = bounds;
+      } else {
+        result = result.boundingBox(bounds);
+      }
+    }
+    return result;
+  }
+}
+
 class MapController {
   final Latlng initialCameraFocal;
   final double initialCameraZoom;
@@ -36,7 +57,11 @@ class MapController {
 
   void attach(MapState state) {
     _state = state;
-    _state.fitBounds(_fitBounds);
+
+    if (_fitBounds != null) {
+      _state.addFitBounds(_fitBounds);
+    }
+
     _state.moveCamera(
       focal: initialCameraFocal,
       zoom: initialCameraZoom,
@@ -46,6 +71,10 @@ class MapController {
   }
 
   void detatch(MapState state) {
+    if (_fitBounds != null) {
+      _state.removeFitBounds(_fitBounds);
+    }
+
     _state = null;
   }
 
@@ -78,8 +107,15 @@ class MapController {
       );
 
   set fitBounds(Bounds bounds) {
+    if (_fitBounds != null) {
+      _state.removeFitBounds(_fitBounds);
+    }
+
+    if (bounds != null) {
+      _state.addFitBounds(bounds);
+    }
+
     _fitBounds = bounds;
-    _state.fitBounds(bounds);
   }
 }
 
@@ -197,9 +233,10 @@ class MapState extends State<_ViewportAwareMap>
     with SingleTickerProviderStateMixin {
   MovingCamera _movingCamera;
   AnimatedCamera _animatedCamera;
-  FitBoundsCamera _camera;
+  FitBoundsCamera _fitBoundsCamera;
 
-  Camera get camera => _camera;
+  Camera get camera => _fitBoundsCamera;
+  BoundingBox get fitBounds => _fitBoundsCamera;
 
   @override
   void initState() {
@@ -216,7 +253,7 @@ class MapState extends State<_ViewportAwareMap>
       vsync: this,
     );
 
-    _camera = FitBoundsCamera(
+    _fitBoundsCamera = FitBoundsCamera(
       camera: _animatedCamera,
       transformation: widget.transformation,
     );
@@ -244,7 +281,7 @@ class MapState extends State<_ViewportAwareMap>
       ..transformation = widget.transformation
       ..viewport = widget.viewport;
 
-    _camera..transformation = widget.transformation;
+    _fitBoundsCamera..transformation = widget.transformation;
   }
 
   @override
@@ -311,14 +348,16 @@ class MapState extends State<_ViewportAwareMap>
     );
   }
 
-  void fitBounds(Bounds bounds) {
-    Rectangle<double> cameraBounds;
+  void addFitBounds(Bounds bounds) {
+    final mapBounds = widget.projection.projectBounds(bounds);
 
-    if (bounds != null) {
-      cameraBounds = widget.projection.projectBounds(bounds);
-    }
+    _fitBoundsCamera.addBounds(mapBounds);
+  }
 
-    _camera.fitBounds = cameraBounds;
+  void removeFitBounds(Bounds bounds) {
+    final mapBounds = widget.projection.projectBounds(bounds);
+
+    _fitBoundsCamera.removeBounds(mapBounds);
   }
 }
 
@@ -349,5 +388,40 @@ class _MapRenderObjectWidget extends MultiChildRenderObjectWidget {
   @override
   RenderObject createRenderObject(BuildContext context) {
     return RenderMap();
+  }
+}
+
+class FitBounds extends StatefulWidget {
+  final Rectangle<double> bounds;
+  final BoundingBox boundingBox;
+  final Widget child;
+
+  FitBounds({
+    Key key,
+    this.bounds,
+    this.boundingBox,
+    this.child,
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _FitBoundsState();
+}
+
+class _FitBoundsState extends State<FitBounds> {
+  @override
+  void initState() {
+    super.initState();
+    widget.boundingBox.addBounds(widget.bounds);
+  }
+
+  @override
+  void dispose() {
+    widget.boundingBox.removeBounds(widget.bounds);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

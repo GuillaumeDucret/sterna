@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -52,6 +54,7 @@ class Marker extends StatelessWidget {
   final Latlng center;
   final bool rotateWithCamera;
   final bool addRepaintBoundary;
+  final bool addFitBounds;
   final MarkerPainter painter;
   final Widget child;
 
@@ -59,6 +62,7 @@ class Marker extends StatelessWidget {
     this.center,
     this.rotateWithCamera = false,
     this.addRepaintBoundary = false,
+    this.addFitBounds = false,
     this.painter,
     this.child,
   }) : assert(painter != null || child != null);
@@ -72,10 +76,11 @@ class Marker extends StatelessWidget {
     if (painter != null) {
       if (painter.dependsOnZoom) {
         result = ValueListenableBuilder(
-          valueListenable: map.state.camera.when(() => map.state.camera.zoom),
+          valueListenable:
+              map.state.camera.when(() => map.state.camera.zoom.truncate()),
           builder: (_, zoom, __) => CustomPaint(
             size: painter.preferredSize,
-            painter: painter..zoom = zoom.truncate(),
+            painter: painter..zoom = zoom,
             child: child,
           ),
         );
@@ -97,6 +102,14 @@ class Marker extends StatelessWidget {
 
     if (addRepaintBoundary) {
       result = RepaintBoundary(
+        child: result,
+      );
+    }
+
+    if (addFitBounds) {
+      result = FitBounds(
+        bounds: Rectangle.fromPoints(coordinates, coordinates),
+        boundingBox: map.state.fitBounds,
         child: result,
       );
     }

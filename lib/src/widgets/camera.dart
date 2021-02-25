@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart' hide TweenVisitor;
 import 'package:sterna/src/animation.dart';
 import 'package:sterna/src/extension.dart';
+import 'package:sterna/src/widgets/map.dart';
 
 import '../transformation.dart';
 
@@ -198,7 +199,9 @@ class AnimatedCamera extends ImplicitlyAnimatedObject
   }
 }
 
-class FitBoundsCamera with _ProxyCameraMixin implements Camera {
+class FitBoundsCamera extends BoundingBox
+    with _ProxyCameraMixin
+    implements Camera {
   final Camera camera;
   Transformation transformation;
 
@@ -207,39 +210,45 @@ class FitBoundsCamera with _ProxyCameraMixin implements Camera {
     this.transformation,
   });
 
-  Rectangle<double> _fitBounds;
   Rectangle<double> _innerBounds;
   double _fitZoom;
   bool _isFit = false;
 
-  set fitBounds(Rectangle<double> bounds) {
-    _fitBounds = bounds;
+  @override
+  void addBounds(Rectangle<double> bounds) {
+    super.addBounds(bounds);
     _innerBounds = null;
     _fitZoom = null;
     _isFit = false;
   }
 
-  bool get hasFitBounds => _fitBounds != null;
+  @override
+  void removeBounds(Rectangle<double> bounds) {
+    super.removeBounds(bounds);
+    _innerBounds = null;
+    _fitZoom = null;
+    _isFit = false;
+  }
 
   double _zoomToFit(Point<double> focal, double maxZoom) {
     focal ??= this.focal;
     maxZoom ??= 15;
 
     if (!(_innerBounds?.containsPoint(focal) ?? false)) {
-      final leftHalfWidth = (focal.x - _fitBounds.left) / (1 + alignment.x);
-      final rightHalfWidth = (focal.x - _fitBounds.right) / (1 - alignment.x);
-      final topHalfWidth = (focal.y - _fitBounds.top) / (1 + alignment.y);
-      final bottomHalfWidth = (focal.y - _fitBounds.bottom) / (1 - alignment.y);
+      final leftHalfWidth = (focal.x - box.left) / (1 + alignment.x);
+      final rightHalfWidth = (-focal.x + box.right) / (1 - alignment.x);
+      final topHalfHeight = (focal.y - box.top) / (1 + alignment.y);
+      final bottomHalfHeight = (-focal.y + box.bottom) / (1 - alignment.y);
 
       final fitSize = Rectangle<double>(
         0,
         0,
         max(leftHalfWidth, rightHalfWidth) * 2,
-        max(topHalfWidth, bottomHalfWidth) * 2,
+        max(topHalfHeight, bottomHalfHeight) * 2,
       );
 
       _fitZoom = transformation.zoomToFitWorld(
-        fitSize.scale(1.5),
+        fitSize.scale(1.2),
         viewport: viewport,
       );
 
@@ -276,7 +285,7 @@ class FitBoundsCamera with _ProxyCameraMixin implements Camera {
   }) {
     camera.move(
       focal: focal,
-      zoom: hasFitBounds ? _zoomToFit(focal, zoom) : zoom,
+      zoom: hasBounds ? _zoomToFit(focal, zoom) : zoom,
       bearing: bearing,
       alignment: alignment,
     );
@@ -292,7 +301,7 @@ class FitBoundsCamera with _ProxyCameraMixin implements Camera {
   }) {
     camera.animate(
       focal: focal,
-      zoom: hasFitBounds ? _zoomToFit(focal, zoom) : zoom,
+      zoom: hasBounds ? _zoomToFit(focal, zoom) : zoom,
       bearing: bearing,
       alignment: alignment,
       duration: duration,
