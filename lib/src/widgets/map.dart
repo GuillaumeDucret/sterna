@@ -291,6 +291,7 @@ class MapState extends State<_ViewportAwareMap>
       transformation: widget.transformation,
       state: this,
       child: _MapRenderObjectWidget(
+        state: this,
         children: widget.children,
       ),
     );
@@ -380,14 +381,19 @@ class MapData extends InheritedWidget {
 }
 
 class _MapRenderObjectWidget extends MultiChildRenderObjectWidget {
+  final MapState state;
+
   _MapRenderObjectWidget({
     Key key,
+    this.state,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderMap();
+    return RenderMap(
+      state: state,
+    );
   }
 }
 

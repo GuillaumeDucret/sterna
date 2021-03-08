@@ -2,7 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
+import '../widgets/map.dart';
+import '../extension.dart';
 
 class MapParentData extends ContainerBoxParentData<RenderBox> {}
 
@@ -10,6 +15,24 @@ class RenderMap extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, MapParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, MapParentData> {
+  final ValueListenable<Alignment> _cameraAmlignment;
+
+  RenderMap({
+    MapState state,
+  }) : _cameraAmlignment = state.camera.when(() => state.camera.alignment);
+
+  @override
+  void attach(covariant PipelineOwner owner) {
+    super.attach(owner);
+    _cameraAmlignment.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _cameraAmlignment.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
   @override
   bool get sizedByParent => true;
 
@@ -39,5 +62,10 @@ class RenderMap extends RenderBox
   @override
   void paint(PaintingContext context, Offset offset) {
     defaultPaint(context, offset);
+
+    final canvas = context.canvas;
+
+    final focalOffset = _cameraAmlignment.value.alongSize(size);
+    canvas.drawCircle(offset + focalOffset, 5.0, Paint()..color = Colors.white);
   }
 }
