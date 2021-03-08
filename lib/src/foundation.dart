@@ -8,7 +8,7 @@ class BroadcastNotifier extends ChangeNotifier {
   @override
   void addListener(void Function() listener) {
     if (!hasListeners) {
-      _listenable.addListener(_onChange);
+      _listenable.addListener(onChange);
     }
     super.addListener(listener);
   }
@@ -17,11 +17,11 @@ class BroadcastNotifier extends ChangeNotifier {
   void removeListener(void Function() listener) {
     super.removeListener(listener);
     if (!hasListeners) {
-      _listenable.removeListener(_onChange);
+      _listenable.removeListener(onChange);
     }
   }
 
-  void _onChange() {
+  void onChange() {
     notifyListeners();
   }
 }
@@ -38,7 +38,7 @@ class WhenValueListenable<T> extends BroadcastNotifier
   T get value => _value ??= _resolver();
 
   @override
-  void _onChange() {
+  void onChange() {
     final value = _resolver();
     if (value != _value) {
       _value = value;
@@ -46,3 +46,32 @@ class WhenValueListenable<T> extends BroadcastNotifier
     }
   }
 }
+
+class WhereListenable extends BroadcastNotifier implements Listenable {
+  final void Function(WhereVisitor visitor) _forEach;
+  final _values = <dynamic>[];
+
+  WhereListenable(Listenable listenable, this._forEach) : super(listenable) {
+    _forEach((value) => _values.add(value));
+  }
+
+  @override
+  void onChange() {
+    var isChanged = false;
+    var index = 0;
+
+    _forEach((value) {
+      if (value != _values[index]) {
+        _values[index] = value;
+        isChanged = true;
+      }
+      index++;
+    });
+
+    if (isChanged) {
+      notifyListeners();
+    }
+  }
+}
+
+typedef WhereVisitor = void Function(dynamic value);

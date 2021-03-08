@@ -7,6 +7,7 @@ import 'package:example/src/examples/animate_camera.dart';
 import 'package:example/src/examples/camera.dart';
 import 'package:example/src/examples/fit_bounds.dart';
 import 'package:example/src/examples/marker.dart';
+import 'package:example/src/examples/paint_marker.dart';
 import 'package:example/src/examples/resolve_marker.dart';
 import 'package:example/src/examples/track_camera.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,11 @@ class AppDrawer extends StatelessWidget {
             title: Text('Resolve Marker'),
             onTap: () =>
                 Navigator.of(context).pushNamed(ResolveMarkerExample.routeName),
+          ),
+          ListTile(
+            title: Text('Paint Marker'),
+            onTap: () =>
+                Navigator.of(context).pushNamed(PaintMarkerExample.routeName),
           ),
           Divider(),
           ListTile(
@@ -111,6 +117,10 @@ class App extends StatelessWidget {
         ResolveMarkerExample.routeName: (_) => AppPage(
               title: 'Resolve marker',
               child: ResolveMarkerExample(),
+            ),
+        PaintMarkerExample.routeName: (_) => AppPage(
+              title: 'Paint marker',
+              child: PaintMarkerExample(),
             ),
         CameraExample.routeName: (_) => AppPage(
               title: 'Camera',

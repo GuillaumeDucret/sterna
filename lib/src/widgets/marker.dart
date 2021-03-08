@@ -14,12 +14,18 @@ import 'layer.dart';
 import 'map.dart';
 
 abstract class MarkerPainter extends CustomPainter {
-  int zoom;
+  double zoom;
+  double bearing;
 
   MarkerPainter({Listenable repaint}) : super(repaint: repaint);
 
   Size get preferredSize;
-  bool get dependsOnZoom => false;
+  bool get dependsOnCameraZoom => false;
+  bool get dependsOnCameraZoomLevel => false;
+  bool get dependsOnCameraBearing => false;
+
+  bool get dependsOnCamera =>
+      dependsOnCameraZoom || dependsOnCameraZoomLevel || dependsOnCameraBearing;
 
   @override
   bool shouldRepaint(covariant MarkerPainter oldDelegate) {
@@ -32,7 +38,7 @@ class CircleMarkerPainter extends MarkerPainter {
   final Color color;
 
   CircleMarkerPainter({
-    this.radius = 5,
+    this.radius = 8,
     this.color = Colors.yellow,
   });
 
@@ -70,17 +76,24 @@ class Marker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final map = SternaMap.of(context);
+    final camera = map.state.camera;
+
     final coordinates = map.projection.projectCoordinates(center);
     var result = child;
 
     if (painter != null) {
-      if (painter.dependsOnZoom) {
-        result = ValueListenableBuilder(
-          valueListenable:
-              map.state.camera.when(() => map.state.camera.zoom.truncate()),
-          builder: (_, zoom, __) => CustomPaint(
+      if (painter.dependsOnCamera) {
+        result = AnimatedBuilder(
+          animation: camera.where((visitor) {
+            if (painter.dependsOnCameraZoom) visitor(camera.zoom);
+            if (painter.dependsOnCameraZoomLevel) visitor(camera.zoom.toInt());
+            if (painter.dependsOnCameraBearing) visitor(camera.bearing);
+          }),
+          builder: (_, __) => CustomPaint(
             size: painter.preferredSize,
-            painter: painter..zoom = zoom,
+            painter: painter
+              ..zoom = camera.zoom
+              ..bearing = camera.bearing,
             child: child,
           ),
         );

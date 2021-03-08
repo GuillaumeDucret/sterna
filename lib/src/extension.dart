@@ -76,4 +76,8 @@ extension ListenableExtension on Listenable {
   ValueListenable<T> when<T>(T Function() resolver) {
     return WhenValueListenable(this, resolver);
   }
+
+  Listenable where<T>(void Function(WhereVisitor visitor) forEach) {
+    return WhereListenable(this, forEach);
+  }
 }
