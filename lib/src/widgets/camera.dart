@@ -204,22 +204,24 @@ class FitBoundsCamera extends BoundingBox
     implements Camera {
   final Camera camera;
   Transformation transformation;
+  final double scale;
 
   FitBoundsCamera({
     this.camera,
     this.transformation,
+    this.scale = 1.2,
   });
 
   Rectangle<double> _innerBounds;
   double _fitZoom;
-  bool _isFit = false;
+
+  Rectangle<double> get innerBounds => _innerBounds;
 
   @override
   void addBounds(Rectangle<double> bounds) {
     super.addBounds(bounds);
     _innerBounds = null;
     _fitZoom = null;
-    _isFit = false;
   }
 
   @override
@@ -227,12 +229,11 @@ class FitBoundsCamera extends BoundingBox
     super.removeBounds(bounds);
     _innerBounds = null;
     _fitZoom = null;
-    _isFit = false;
   }
 
-  double _zoomToFit(Point<double> focal, double maxZoom) {
+  double _zoomToFit(Point<double> focal, double zoom) {
     focal ??= this.focal;
-    maxZoom ??= 15;
+    zoom ??= 15;
 
     if (!(_innerBounds?.containsPoint(focal) ?? false)) {
       final leftHalfWidth = (focal.x - box.left) / (1 + alignment.x);
@@ -248,7 +249,7 @@ class FitBoundsCamera extends BoundingBox
       );
 
       _fitZoom = transformation.zoomToFitWorld(
-        fitSize.scale(1.2),
+        fitSize.scale(scale),
         viewport: viewport,
       );
 
@@ -258,22 +259,14 @@ class FitBoundsCamera extends BoundingBox
       );
 
       _innerBounds = Rectangle<double>(
-        camera.focal.x - (cameraFitSize.width - fitSize.width) / 2,
-        camera.focal.y - (cameraFitSize.height - fitSize.height) / 2,
+        focal.x - (cameraFitSize.width - fitSize.width) / 2,
+        focal.y - (cameraFitSize.height - fitSize.height) / 2,
         cameraFitSize.width - fitSize.width,
         cameraFitSize.height - fitSize.height,
       );
     }
 
-    double result;
-    if (_fitZoom <= maxZoom) {
-      result = !_isFit ? _fitZoom : null;
-      _isFit = true;
-    } else {
-      result = maxZoom;
-      _isFit = false;
-    }
-    return result;
+    return min(_fitZoom, zoom);
   }
 
   @override
