@@ -24,6 +24,7 @@ class ResolveMarkerExample extends StatelessWidget {
             resolver: (bounds) async => BuilderBundle<Latlng>(
               iterable: colonies.where(bounds.contains),
               builder: (_, latlng) => Marker(
+                key: ValueKey(latlng),
                 center: latlng,
                 painter: CircleMarkerPainter(),
               ),

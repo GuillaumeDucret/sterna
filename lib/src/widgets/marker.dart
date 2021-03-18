@@ -65,13 +65,15 @@ class Marker extends StatelessWidget {
   final Widget child;
 
   const Marker({
+    Key key,
     this.center,
     this.rotateWithCamera = false,
     this.addRepaintBoundary = false,
     this.addFitBounds = false,
     this.painter,
     this.child,
-  }) : assert(painter != null || child != null);
+  })  : assert(painter != null || child != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {

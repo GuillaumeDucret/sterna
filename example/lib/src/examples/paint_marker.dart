@@ -48,6 +48,7 @@ class _PaintMarkerExampleState extends State<PaintMarkerExample> {
         Layer(
           children: <Widget>[
             Marker(
+              key: ValueKey(northernColonie),
               center: northernColonie,
               painter: _ColonieMarkerPainter(),
             ),

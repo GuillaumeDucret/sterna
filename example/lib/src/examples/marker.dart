@@ -21,6 +21,7 @@ class MarkerExample extends StatelessWidget {
         Layer(
           children: <Widget>[
             Marker(
+              key: ValueKey(northernColonie),
               center: northernColonie,
               painter: CircleMarkerPainter(),
             ),
