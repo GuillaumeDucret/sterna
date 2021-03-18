@@ -5,7 +5,6 @@
 import 'dart:math';
 
 import 'package:flutter/animation.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 
 typedef TweenConstructor<T> = Tween<T> Function(T targetValue);
@@ -33,24 +32,36 @@ abstract class ImplicitlyAnimatedObject {
     }
   }
 
+  bool _shouldConstructTween(Tween<dynamic> tween, dynamic targetValue) {
+    return tween == null && targetValue != null;
+  }
+
   bool _shouldAnimateTween(Tween<dynamic> tween, dynamic targetValue) {
-    return targetValue != (tween.end ?? tween.begin);
+    return tween != null && targetValue != (tween.end ?? tween.begin);
+  }
+
+  bool _shouldUpdateTween(Tween<dynamic> tween) {
+    return tween != null;
   }
 
   void forEachTween(void Function(TweenVisitor visitor) delegate) {
     var shouldStartAnimation = false;
+
     delegate((Tween<dynamic> tween, dynamic targetValue,
         TweenConstructor<dynamic> constructor) {
-      if (targetValue == null) {
-        tween = null;
-      } else {
-        tween ??= constructor(targetValue);
+      if (_shouldConstructTween(tween, targetValue)) {
+        tween = constructor(targetValue);
+        tween.end = tween.begin;
+      }
 
-        shouldStartAnimation = _shouldAnimateTween(tween, targetValue);
+      if (_shouldAnimateTween(tween, targetValue)) {
+        shouldStartAnimation = true;
+      }
 
+      if (_shouldUpdateTween(tween)) {
         tween
           ..begin = tween.evaluate(_animation)
-          ..end = targetValue;
+          ..end = targetValue ?? tween.end;
       }
 
       return tween;
