@@ -15,6 +15,7 @@ class CameraExample extends StatelessWidget {
         initialCameraFocal: northernColonie,
         initialCameraZoom: 8,
         initialCameraBearing: 045,
+        initialCameraAlignment: Alignment.center,
       ),
       children: <Widget>[
         TileLayer(

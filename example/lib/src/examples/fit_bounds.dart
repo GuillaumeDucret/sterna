@@ -3,8 +3,6 @@
 // license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:sterna/projection.dart';
-
 import 'package:sterna/widgets.dart';
 
 import '../arctic_tern.dart';
@@ -30,7 +28,6 @@ class _FitBoundsExampleState extends State<FitBoundsExample> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // wait for controller to attach
-      //_mapController.fitBounds = Bounds.fromLatlngs(northernColonie, northernColonie);
       _mapController.animateCamera(
         duration: Duration(seconds: 10),
       );

@@ -1,3 +1,3 @@
-## [0.0.1] - TODO: Add release date.
+## [0.1.0] - 03/19/2021.
 
-* TODO: Describe initial release.
+- Moving map for flutter.
