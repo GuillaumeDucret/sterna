@@ -17,7 +17,7 @@ class TrackCameraExample extends StatefulWidget {
 }
 
 class _TrackCameraExampleState extends State<TrackCameraExample> {
-  ValueNotifier<Latlng> _colonie;
+  late ValueNotifier<Latlng> _colonie;
 
   @override
   void initState() {

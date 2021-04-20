@@ -10,9 +10,12 @@ class Transformation {
 
   Transformation({this.tileSize = 256});
 
-  double scaleFromZoom(double zoom) => pow(2, zoom);
+  double scaleFromZoom(double zoom) => pow(2, zoom) as double;
 
-  Point<int> tileCoordinatesFromWorld(Point<double> coordinates, {int zoom}) {
+  Point<int> tileCoordinatesFromWorld(
+    Point<double> coordinates, {
+    required int zoom,
+  }) {
     final scale = pow(2, zoom);
 
     return Point<int>(
@@ -21,14 +24,20 @@ class Transformation {
     );
   }
 
-  Rectangle<int> tileGridFromWorld(Rectangle<double> bounds, {int zoom}) {
+  Rectangle<int> tileGridFromWorld(
+    Rectangle<double> bounds, {
+    required int zoom,
+  }) {
     return Rectangle<int>.fromPoints(
       tileCoordinatesFromWorld(bounds.topLeft, zoom: zoom),
       tileCoordinatesFromWorld(bounds.bottomRight, zoom: zoom),
     );
   }
 
-  Offset pixelOffsetFromWorld(Point<double> coordinates, {double zoom}) {
+  Offset pixelOffsetFromWorld(
+    Point<double> coordinates, {
+    required double zoom,
+  }) {
     final scale = pow(2, zoom);
 
     return Offset(
@@ -48,7 +57,10 @@ class Transformation {
     );
   }
 
-  double zoomToFitWorld(Rectangle size, {Size viewport}) {
+  double zoomToFitWorld(
+    Rectangle size, {
+    required Size viewport,
+  }) {
     final scale = min(
       viewport.width / size.width,
       viewport.height / size.height,
@@ -57,7 +69,10 @@ class Transformation {
     return log(scale) / ln2;
   }
 
-  Point<double> worldCoordinatesFromTile(Point<int> coordinates, {int zoom}) {
+  Point<double> worldCoordinatesFromTile(
+    Point<int> coordinates, {
+    required int zoom,
+  }) {
     final scale = pow(2, zoom);
 
     return Point<double>(
@@ -66,7 +81,10 @@ class Transformation {
     );
   }
 
-  Rectangle<double> worldBoundsFromTile(Point<int> coordinates, {int zoom}) {
+  Rectangle<double> worldBoundsFromTile(
+    Point<int> coordinates, {
+    required int zoom,
+  }) {
     return Rectangle<double>.fromPoints(
       worldCoordinatesFromTile(coordinates, zoom: zoom),
       worldCoordinatesFromTile(coordinates + Point<int>(1, 1), zoom: zoom),

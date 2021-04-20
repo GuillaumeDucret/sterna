@@ -15,7 +15,7 @@ class FitBoundsExample extends StatefulWidget {
 }
 
 class _FitBoundsExampleState extends State<FitBoundsExample> {
-  MapController _mapController;
+  late MapController _mapController;
 
   @override
   void initState() {
@@ -26,7 +26,7 @@ class _FitBoundsExampleState extends State<FitBoundsExample> {
       initialCameraZoom: 6,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       // wait for controller to attach
       _mapController.animateCamera(
         duration: Duration(seconds: 10),

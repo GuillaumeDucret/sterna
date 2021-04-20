@@ -23,7 +23,9 @@ abstract class BundleEntry {
 class BuilderBundleEntry implements BundleEntry {
   final Widget Function(BuildContext context) builder;
 
-  BuilderBundleEntry({this.builder});
+  BuilderBundleEntry({
+    required this.builder,
+  });
 
   Widget build(BuildContext context) => builder(context);
 }
@@ -31,7 +33,9 @@ class BuilderBundleEntry implements BundleEntry {
 class IterableBundle<T> extends ChangeNotifier implements Bundle {
   final Iterable<T> _iterable;
 
-  IterableBundle({Iterable<T> iterable}) : _iterable = iterable;
+  IterableBundle({
+    required Iterable<T> iterable,
+  }) : _iterable = iterable;
 
   Iterable<BundleEntry> get entries sync* {
     for (T value in _iterable) {
@@ -51,8 +55,8 @@ class BuilderBundle<T> extends IterableBundle<T> {
   final Widget Function(BuildContext context, T value) builder;
 
   BuilderBundle({
-    Iterable<T> iterable,
-    this.builder,
+    required Iterable<T> iterable,
+    required this.builder,
   }) : super(iterable: iterable);
 
   Widget build(BuildContext context, T value) => builder(context, value);
@@ -66,7 +70,7 @@ class MarkerLayerChildResolverDelegate implements MarkerLayerChildDelegate {
   final Future<Bundle> Function(Bounds bounds) _resolver;
 
   MarkerLayerChildResolverDelegate({
-    Future<Bundle> Function(Bounds bounds) resolver,
+    required Future<Bundle> Function(Bounds bounds) resolver,
   }) : _resolver = resolver;
 
   @override
@@ -76,7 +80,9 @@ class MarkerLayerChildResolverDelegate implements MarkerLayerChildDelegate {
 class MarkerLayer extends StatelessWidget {
   final MarkerLayerChildDelegate delegate;
 
-  const MarkerLayer({this.delegate});
+  const MarkerLayer({
+    required this.delegate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +104,10 @@ class _MapStateAwareMarkerLayer extends StatefulWidget {
   final MapState state;
 
   _MapStateAwareMarkerLayer({
-    this.projection,
-    this.transformation,
-    this.delegate,
-    this.state,
+    required this.projection,
+    required this.transformation,
+    required this.delegate,
+    required this.state,
   });
 
   @override

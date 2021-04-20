@@ -29,7 +29,7 @@ class BroadcastNotifier extends ChangeNotifier {
 class WhenValueListenable<T> extends BroadcastNotifier
     implements ValueListenable<T> {
   final T Function() _resolver;
-  T _value;
+  T? _value;
 
   WhenValueListenable(Listenable listenable, this._resolver)
       : super(listenable);

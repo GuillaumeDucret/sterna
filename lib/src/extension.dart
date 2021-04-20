@@ -14,21 +14,21 @@ extension RectangleExtension<T extends num> on Rectangle<T> {
     final leftDelta = width * (factor - 1) / 2;
     final topDelta = height * (factor - 1) / 2;
 
-    return Rectangle(
-      left - leftDelta,
-      top - topDelta,
-      width * factor,
-      height * factor,
+    return Rectangle<T>(
+      (left - leftDelta) as T,
+      (top - topDelta) as T,
+      (width * factor) as T,
+      (height * factor) as T,
     );
   }
 
   /// Returns a new rectangle with edges moved outwards by the given delta.
   Rectangle<T> inflate(T delta) {
     return Rectangle<T>(
-      left - delta,
-      top - delta,
-      width + delta * 2,
-      height + delta * 2,
+      (left - delta) as T,
+      (top - delta) as T,
+      (width + delta * 2) as T,
+      (height + delta * 2) as T,
     );
   }
 

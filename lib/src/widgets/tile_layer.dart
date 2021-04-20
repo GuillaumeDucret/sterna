@@ -21,12 +21,12 @@ class RasterTileLayerChildDelegate implements TileLayerChildDelegate {
   final ImageProvider Function(int x, int y, int z) resolver;
 
   RasterTileLayerChildDelegate({
-    this.resolver,
+    required this.resolver,
   });
 
   RasterTileLayerChildDelegate.network(
     String Function(int x, int y, int z) src, {
-    Map<String, String> headers,
+    Map<String, String>? headers,
   }) : resolver = ((x, y, z) => NetworkImage(src(x, y, z), headers: headers));
 
   RasterTileLayerChildDelegate.osm()
@@ -48,7 +48,9 @@ class RasterTileLayerChildDelegate implements TileLayerChildDelegate {
 class TileLayer extends StatelessWidget {
   final TileLayerChildDelegate delegate;
 
-  const TileLayer({this.delegate});
+  const TileLayer({
+    required this.delegate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +70,9 @@ class _MapStateAwareTileLayer extends StatefulWidget {
   final MapState state;
 
   _MapStateAwareTileLayer({
-    this.transformation,
-    this.delegate,
-    this.state,
+    required this.transformation,
+    required this.delegate,
+    required this.state,
   });
 
   @override
@@ -151,11 +153,11 @@ class RasterTile extends StatelessWidget {
   final ImageProvider image;
 
   const RasterTile({
-    Key key,
-    this.x,
-    this.y,
-    this.z,
-    this.image,
+    Key? key,
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.image,
   }) : super(key: key);
 
   @override

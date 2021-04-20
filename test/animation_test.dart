@@ -7,16 +7,18 @@ import 'package:sterna/src/animation.dart';
 class ArcticTern extends ImplicitlyAnimatedObject {
   ArcticTern() : super(duration: Duration(seconds: 1), vsync: TestVSync());
 
-  Tween<double> _pitch;
-  Tween<double> _roll;
+  Tween<double>? _pitch;
+  Tween<double>? _roll;
 
   void attitude({
-    double pitch,
-    double roll,
+    double? pitch,
+    double? roll,
   }) {
     forEachTween((TweenVisitor visitor) {
-      _pitch = visitor(_pitch, pitch, (v) => Tween<double>(begin: v));
-      _roll = visitor(_roll, roll, (v) => Tween<double>(begin: v));
+      _pitch = visitor(_pitch, pitch, (v) => Tween<double>(begin: v))
+          as Tween<double>?;
+      _roll = visitor(_roll, roll, (v) => Tween<double>(begin: v))
+          as Tween<double>?;
     });
   }
 
@@ -27,8 +29,8 @@ class ArcticTern extends ImplicitlyAnimatedObject {
 void tick(Duration duration) {
   // We don't bother running microtasks between these two calls
   // because we don't use Futures in these tests and so don't care.
-  SchedulerBinding.instance.handleBeginFrame(duration);
-  SchedulerBinding.instance.handleDrawFrame();
+  SchedulerBinding.instance!.handleBeginFrame(duration);
+  SchedulerBinding.instance!.handleDrawFrame();
 }
 
 void main() {
@@ -40,23 +42,23 @@ void main() {
       final arcticTern = ArcticTern();
 
       arcticTern.attitude(pitch: 0, roll: 0);
-      expect(arcticTern._pitch.begin, 0);
-      expect(arcticTern._roll.begin, 0);
+      expect(arcticTern._pitch?.begin, 0);
+      expect(arcticTern._roll?.begin, 0);
 
       arcticTern.attitude(pitch: 20);
-      expect(arcticTern._pitch.begin, 0);
-      expect(arcticTern._pitch.end, 20);
-      expect(arcticTern._roll.begin, 0);
-      expect(arcticTern._roll.end, 0);
+      expect(arcticTern._pitch?.begin, 0);
+      expect(arcticTern._pitch?.end, 20);
+      expect(arcticTern._roll?.begin, 0);
+      expect(arcticTern._roll?.end, 0);
 
       tick(Duration(milliseconds: 0));
       tick(Duration(milliseconds: 500));
 
       arcticTern.attitude(roll: 45);
-      expect(arcticTern._pitch.begin, 10);
-      expect(arcticTern._pitch.end, 20);
-      expect(arcticTern._roll.begin, 0);
-      expect(arcticTern._roll.end, 45);
+      expect(arcticTern._pitch?.begin, 10);
+      expect(arcticTern._pitch?.end, 20);
+      expect(arcticTern._roll?.begin, 0);
+      expect(arcticTern._roll?.end, 45);
     });
   });
 }

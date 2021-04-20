@@ -15,21 +15,21 @@ class RenderMap extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, MapParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, MapParentData> {
-  final ValueListenable<Alignment> _cameraAmlignment;
+  final ValueListenable<Alignment> _cameraAlignment;
 
   RenderMap({
-    MapState state,
-  }) : _cameraAmlignment = state.camera.when(() => state.camera.alignment);
+    required MapState state,
+  }) : _cameraAlignment = state.camera.when(() => state.camera.alignment);
 
   @override
   void attach(covariant PipelineOwner owner) {
     super.attach(owner);
-    _cameraAmlignment.addListener(markNeedsPaint);
+    _cameraAlignment.addListener(markNeedsPaint);
   }
 
   @override
   void detach() {
-    _cameraAmlignment.removeListener(markNeedsPaint);
+    _cameraAlignment.removeListener(markNeedsPaint);
     super.detach();
   }
 
@@ -50,7 +50,7 @@ class RenderMap extends RenderBox
 
   @override
   void performLayout() {
-    RenderBox child = firstChild;
+    RenderBox? child = firstChild;
 
     while (child != null) {
       final childParentData = child.parentData as MapParentData;
@@ -65,7 +65,7 @@ class RenderMap extends RenderBox
 
     final canvas = context.canvas;
 
-    final focalOffset = _cameraAmlignment.value.alongSize(size);
+    final focalOffset = _cameraAlignment.value.alongSize(size);
     canvas.drawCircle(offset + focalOffset, 5.0, Paint()..color = Colors.white);
   }
 }

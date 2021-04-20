@@ -15,7 +15,7 @@ class PaintMarkerExample extends StatefulWidget {
 }
 
 class _PaintMarkerExampleState extends State<PaintMarkerExample> {
-  MapController _mapController;
+  late MapController _mapController;
 
   @override
   void initState() {
@@ -27,7 +27,7 @@ class _PaintMarkerExampleState extends State<PaintMarkerExample> {
       initialCameraBearing: 0,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       // wait for controller to attach
       _mapController.animateCamera(
         zoom: 8,
@@ -72,12 +72,12 @@ class _ColonieMarkerPainter extends MarkerPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.yellow.withOpacity(zoom / 10)
+      ..color = Colors.yellow.withOpacity(zoom! / 10)
       ..strokeWidth = 4;
 
     canvas.drawRect(Rect.fromCircle(center: Offset.zero, radius: 10), paint);
 
-    canvas.rotate(-bearing);
+    canvas.rotate(-bearing!);
     canvas.drawLine(Offset.zero, Offset(0, -30), paint);
   }
 }

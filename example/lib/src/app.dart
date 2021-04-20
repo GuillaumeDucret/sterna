@@ -75,9 +75,12 @@ class AppDrawer extends StatelessWidget {
 }
 
 class AppPage extends StatelessWidget {
-  AppPage({this.title, this.child});
+  AppPage({
+    this.title,
+    required this.child,
+  });
 
-  final String title;
+  final String? title;
   final Widget child;
 
   @override

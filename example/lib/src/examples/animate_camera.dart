@@ -15,7 +15,7 @@ class AnimateCameraExample extends StatefulWidget {
 }
 
 class _AnimateCameraExampleState extends State<AnimateCameraExample> {
-  MapController _mapController;
+  late MapController _mapController;
 
   @override
   void initState() {
@@ -27,7 +27,7 @@ class _AnimateCameraExampleState extends State<AnimateCameraExample> {
       initialCameraBearing: 45,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       // wait for controller to attach
       _mapController.animateCamera(
         focal: southernColonie,

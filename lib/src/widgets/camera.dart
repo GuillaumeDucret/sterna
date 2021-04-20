@@ -19,18 +19,18 @@ abstract class Camera implements Listenable {
   Size get viewport;
 
   move({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
   });
 
   animate({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
-    Duration duration,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
+    Duration? duration,
   });
 }
 
@@ -66,9 +66,9 @@ class MovingCamera extends ChangeNotifier implements Camera {
   Alignment _alignment;
 
   MovingCamera({
-    this.transformation,
-    this.viewport,
-  })  : _focal = Point<double>(0, 0),
+    required this.transformation,
+    required this.viewport,
+  })   : _focal = Point<double>(0, 0),
         _zoom = 0,
         _bearing = 0.0,
         _alignment = Alignment.center;
@@ -96,10 +96,10 @@ class MovingCamera extends ChangeNotifier implements Camera {
   }
 
   void move({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
   }) {
     var isChanged = false;
 
@@ -130,11 +130,11 @@ class MovingCamera extends ChangeNotifier implements Camera {
 
   @override
   void animate({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
-    Duration duration,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
+    Duration? duration,
   }) =>
       move(focal: focal, zoom: zoom, bearing: bearing, alignment: alignment);
 }
@@ -145,46 +145,54 @@ class AnimatedCamera extends ImplicitlyAnimatedObject
   final Camera camera;
 
   AnimatedCamera({
-    this.camera,
-    Duration duration,
-    TickerProvider vsync,
+    required this.camera,
+    required Duration duration,
+    required TickerProvider vsync,
   }) : super(duration: duration, vsync: vsync);
 
-  Tween<Point<double>> _focal;
-  Tween<double> _zoom;
-  Tween<double> _bearing;
-  Tween<Alignment> _alignment;
+  Tween<Point<double>>? _focal;
+  Tween<double>? _zoom;
+  Tween<double>? _bearing;
+  Tween<Alignment>? _alignment;
 
   void animate({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
-    Duration duration,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
+    Duration? duration,
   }) {
     super.duration = duration;
 
     forEachTween((TweenVisitor visitor) {
-      _focal = visitor(_focal, focal, (v) => Tween<Point<double>>(begin: v));
-      _zoom = visitor(_zoom, zoom, (v) => Tween<double>(begin: v));
-      _bearing = visitor(_bearing, bearing, (v) => ArcTween(begin: v));
+      _focal = visitor(_focal, focal, (v) => Tween<Point<double>>(begin: v))
+          as Tween<Point<double>>?;
+      _zoom = visitor(_zoom, zoom, (v) => Tween<double>(begin: v))
+          as Tween<double>?;
+      _bearing = visitor(_bearing, bearing, (v) => ArcTween(begin: v))
+          as Tween<double>?;
       _alignment =
-          visitor(_alignment, alignment, (v) => AlignmentTween(begin: v));
+          visitor(_alignment, alignment, (v) => AlignmentTween(begin: v))
+              as Tween<Alignment>?;
     });
   }
 
   @override
   move({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
   }) {
     forEachTween((TweenVisitor visitor) {
-      _focal = visitor(null, focal, (v) => Tween<Point<double>>(begin: v));
-      _zoom = visitor(null, zoom, (v) => Tween<double>(begin: v));
-      _bearing = visitor(null, bearing, (v) => ArcTween(begin: v));
-      _alignment = visitor(null, alignment, (v) => AlignmentTween(begin: v));
+      _focal = visitor(null, focal, (v) => Tween<Point<double>>(begin: v))
+          as Tween<Point<double>>?;
+      _zoom =
+          visitor(null, zoom, (v) => Tween<double>(begin: v)) as Tween<double>?;
+      _bearing =
+          visitor(null, bearing, (v) => ArcTween(begin: v)) as Tween<double>?;
+      _alignment = visitor(null, alignment, (v) => AlignmentTween(begin: v))
+          as Tween<Alignment>?;
     });
   }
 
@@ -207,15 +215,15 @@ class FitBoundsCamera extends BoundingBox
   final double scale;
 
   FitBoundsCamera({
-    this.camera,
-    this.transformation,
+    required this.camera,
+    required this.transformation,
     this.scale = 1.2,
   });
 
-  Rectangle<double> _innerBounds;
-  double _fitZoom;
+  Rectangle<double>? _innerBounds;
+  double? _fitZoom;
 
-  Rectangle<double> get innerBounds => _innerBounds;
+  Rectangle<double>? get innerBounds => _innerBounds;
 
   @override
   void addBounds(Rectangle<double> bounds) {
@@ -231,15 +239,15 @@ class FitBoundsCamera extends BoundingBox
     _fitZoom = null;
   }
 
-  double _zoomToFit(Point<double> focal, double zoom) {
+  double _zoomToFit(Point<double>? focal, double? zoom) {
     focal ??= this.focal;
     zoom ??= 15;
 
     if (!(_innerBounds?.containsPoint(focal) ?? false)) {
-      final leftHalfWidth = (focal.x - box.left) / (1 + alignment.x);
-      final rightHalfWidth = (-focal.x + box.right) / (1 - alignment.x);
-      final topHalfHeight = (focal.y - box.top) / (1 + alignment.y);
-      final bottomHalfHeight = (-focal.y + box.bottom) / (1 - alignment.y);
+      final leftHalfWidth = (focal.x - box!.left) / (1 + alignment.x);
+      final rightHalfWidth = (-focal.x + box!.right) / (1 - alignment.x);
+      final topHalfHeight = (focal.y - box!.top) / (1 + alignment.y);
+      final bottomHalfHeight = (-focal.y + box!.bottom) / (1 - alignment.y);
 
       final fitSize = Rectangle<double>(
         0,
@@ -255,7 +263,7 @@ class FitBoundsCamera extends BoundingBox
 
       final cameraFitSize = transformation.worldSizeFromPixels(
         viewport,
-        zoom: _fitZoom,
+        zoom: _fitZoom!,
       );
 
       _innerBounds = Rectangle<double>(
@@ -266,15 +274,15 @@ class FitBoundsCamera extends BoundingBox
       );
     }
 
-    return min(_fitZoom, zoom);
+    return min(_fitZoom!, zoom);
   }
 
   @override
   move({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
   }) {
     camera.move(
       focal: focal,
@@ -286,11 +294,11 @@ class FitBoundsCamera extends BoundingBox
 
   @override
   animate({
-    Point<double> focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
-    Duration duration,
+    Point<double>? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
+    Duration? duration,
   }) {
     camera.animate(
       focal: focal,
@@ -311,14 +319,14 @@ class CameraTransition extends AnimatedWidget {
   final Alignment _initialAlignment;
 
   CameraTransition({
-    Key key,
-    this.transformation,
-    Point<double> initialFocal,
-    double initialZoom,
-    Alignment initialAlignment,
-    Camera camera,
-    this.child,
-  })  : _initialFocal = initialFocal ?? camera.focal,
+    Key? key,
+    required this.transformation,
+    Point<double>? initialFocal,
+    double? initialZoom,
+    Alignment? initialAlignment,
+    required Camera camera,
+    required this.child,
+  })   : _initialFocal = initialFocal ?? camera.focal,
         _initialZoom = initialZoom ?? camera.zoom,
         _initialAlignment = initialAlignment ?? camera.alignment,
         super(key: key, listenable: camera);
@@ -361,12 +369,12 @@ class CameraTransition extends AnimatedWidget {
 
 class CameraRotationTransition extends AnimatedWidget {
   final bool inverse;
-  final Widget child;
+  final Widget? child;
 
   CameraRotationTransition({
-    Key key,
+    Key? key,
     this.inverse = false,
-    Camera camera,
+    required Camera camera,
     this.child,
   }) : super(key: key, listenable: camera.when(() => camera.bearing));
 

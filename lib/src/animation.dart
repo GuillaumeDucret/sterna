@@ -8,46 +8,46 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/scheduler.dart';
 
 typedef TweenConstructor<T> = Tween<T> Function(T targetValue);
-typedef TweenVisitor<T> = Tween<T> Function(
-    Tween<T> tween, T targetValue, TweenConstructor<T> constructor);
+typedef TweenVisitor<T> = Tween<T>? Function(
+    Tween<T>? tween, T? targetValue, TweenConstructor<T> constructor);
 
 abstract class ImplicitlyAnimatedObject {
-  AnimationController _controller;
-  Animation _animation;
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   ImplicitlyAnimatedObject({
-    Duration duration,
-    TickerProvider vsync,
+    Duration? duration,
+    required TickerProvider vsync,
   }) {
     _controller = AnimationController(duration: duration, vsync: vsync);
     _animation = _controller;
     _animation.addListener(evaluate);
   }
 
-  Animation get animation => _animation;
+  Animation<double> get animation => _animation;
 
-  set duration(Duration duration) {
+  set duration(Duration? duration) {
     if (duration != null) {
       _controller.duration = duration;
     }
   }
 
-  bool _shouldConstructTween(Tween<dynamic> tween, dynamic targetValue) {
+  bool _shouldConstructTween(Tween<dynamic>? tween, dynamic targetValue) {
     return tween == null && targetValue != null;
   }
 
-  bool _shouldAnimateTween(Tween<dynamic> tween, dynamic targetValue) {
+  bool _shouldAnimateTween(Tween<dynamic>? tween, dynamic targetValue) {
     return tween != null && targetValue != (tween.end ?? tween.begin);
   }
 
-  bool _shouldUpdateTween(Tween<dynamic> tween) {
+  bool _shouldUpdateTween(Tween<dynamic>? tween) {
     return tween != null;
   }
 
   void forEachTween(void Function(TweenVisitor visitor) delegate) {
     var shouldStartAnimation = false;
 
-    delegate((Tween<dynamic> tween, dynamic targetValue,
+    delegate((Tween<dynamic>? tween, dynamic targetValue,
         TweenConstructor<dynamic> constructor) {
       if (_shouldConstructTween(tween, targetValue)) {
         tween = constructor(targetValue);
@@ -59,7 +59,7 @@ abstract class ImplicitlyAnimatedObject {
       }
 
       if (_shouldUpdateTween(tween)) {
-        tween
+        tween!
           ..begin = tween.evaluate(_animation)
           ..end = targetValue ?? tween.end;
       }
@@ -85,19 +85,19 @@ abstract class ImplicitlyAnimatedObject {
 }
 
 class ArcTween extends Tween<double> {
-  double _arc;
+  double? _arc;
 
   ArcTween({
-    double begin,
-    double end,
+    double? begin,
+    double? end,
   }) : super(begin: begin, end: end);
 
-  set begin(double radians) {
+  set begin(double? radians) {
     super.begin = radians;
     _arc = null;
   }
 
-  set end(double radians) {
+  set end(double? radians) {
     super.end = radians;
     _arc = null;
   }
@@ -106,11 +106,11 @@ class ArcTween extends Tween<double> {
   double lerp(double t) {
     assert(begin != null);
     assert(end != null);
-    assert(begin >= 0 && begin <= pi * 2);
-    assert(end >= 0 && end <= pi * 2);
+    assert(begin! >= 0 && begin! <= pi * 2);
+    assert(end! >= 0 && end! <= pi * 2);
 
-    _arc ??= _shortestArc(begin, end);
-    var radians = begin + _arc * t;
+    _arc ??= _shortestArc(begin!, end!);
+    var radians = begin! + _arc! * t;
 
     radians = radians % (pi * 2);
     if (radians < 0) {

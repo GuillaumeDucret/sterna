@@ -15,7 +15,7 @@ class AlignCameraExample extends StatefulWidget {
 }
 
 class _AlignCameraExampleState extends State<AlignCameraExample> {
-  MapController _mapController;
+  late MapController _mapController;
 
   @override
   void initState() {
@@ -25,7 +25,7 @@ class _AlignCameraExampleState extends State<AlignCameraExample> {
       initialCameraFocal: nuuk,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       // wait for controller to attach
       _mapController.animateCamera(
         alignment: Alignment(0, 0.5),

@@ -21,8 +21,8 @@ class BoundingBox {
 
   bool get hasBounds => _rectangles.isNotEmpty;
 
-  Rectangle<double> get box {
-    Rectangle<double> result;
+  Rectangle<double>? get box {
+    Rectangle<double>? result;
     for (final bounds in _rectangles) {
       if (result == null) {
         result = bounds;
@@ -43,26 +43,26 @@ class MapController {
 
   final Alignment initialCameraAlignment;
 
-  Bounds _fitBounds;
+  Bounds? _fitBounds;
 
   MapController({
-    this.initialCameraFocal,
+    required this.initialCameraFocal,
     this.initialCameraZoom = 11,
     this.initialCameraBearing = 0.0,
     this.initialCameraAlignment = Alignment.center,
-    Bounds fitBounds,
+    Bounds? fitBounds,
   }) : _fitBounds = fitBounds;
 
-  MapState _state;
+  MapState? _state;
 
   void attach(MapState state) {
     _state = state;
 
     if (_fitBounds != null) {
-      _state.addFitBounds(_fitBounds);
+      _state!.addFitBounds(_fitBounds!);
     }
 
-    _state.moveCamera(
+    _state!.moveCamera(
       focal: initialCameraFocal,
       zoom: initialCameraZoom,
       bearing: initialCameraBearing,
@@ -72,19 +72,19 @@ class MapController {
 
   void detatch(MapState state) {
     if (_fitBounds != null) {
-      _state.removeFitBounds(_fitBounds);
+      _state!.removeFitBounds(_fitBounds!);
     }
 
     _state = null;
   }
 
   void moveCamera({
-    Latlng focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
+    Latlng? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
   }) =>
-      _state.moveCamera(
+      _state!.moveCamera(
         focal: focal,
         zoom: zoom,
         bearing: bearing,
@@ -92,13 +92,13 @@ class MapController {
       );
 
   void animateCamera({
-    Latlng focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
-    Duration duration,
+    Latlng? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
+    Duration? duration,
   }) =>
-      _state.animateCamera(
+      _state!.animateCamera(
         focal: focal,
         zoom: zoom,
         bearing: bearing,
@@ -106,13 +106,13 @@ class MapController {
         duration: duration,
       );
 
-  set fitBounds(Bounds bounds) {
+  set fitBounds(Bounds? bounds) {
     if (_fitBounds != null) {
-      _state.removeFitBounds(_fitBounds);
+      _state!.removeFitBounds(_fitBounds!);
     }
 
     if (bounds != null) {
-      _state.addFitBounds(bounds);
+      _state!.addFitBounds(bounds);
     }
 
     _fitBounds = bounds;
@@ -121,25 +121,26 @@ class MapController {
 
 class TrackMapController extends MapController {
   final bool animate;
-  final ValueListenable<Latlng> _cameraFocal;
-  final ValueListenable<double> _cameraZoom;
+  final ValueListenable<Latlng>? _cameraFocal;
+  final ValueListenable<double>? _cameraZoom;
 
   /// bearing in degree
-  final ValueListenable<double> _cameraBearing;
+  final ValueListenable<double>? _cameraBearing;
 
   TrackMapController({
     this.animate = false,
-    Latlng initialCameraFocal,
+    Latlng? initialCameraFocal,
     double initialCameraZoom = 11,
     double initialCameraBearing = 0.0,
-    ValueListenable<Latlng> cameraFocal,
-    ValueListenable<double> cameraZoom,
-    ValueListenable<double> cameraBearing,
-  })  : _cameraFocal = cameraFocal,
+    ValueListenable<Latlng>? cameraFocal,
+    ValueListenable<double>? cameraZoom,
+    ValueListenable<double>? cameraBearing,
+  })  : assert(initialCameraFocal != null || cameraFocal != null),
+        _cameraFocal = cameraFocal,
         _cameraZoom = cameraZoom,
         _cameraBearing = cameraBearing,
         super(
-            initialCameraFocal: cameraFocal?.value ?? initialCameraFocal,
+            initialCameraFocal: cameraFocal?.value ?? initialCameraFocal!,
             initialCameraZoom: cameraZoom?.value ?? initialCameraZoom,
             initialCameraBearing: cameraBearing?.value ?? initialCameraBearing);
 
@@ -183,11 +184,11 @@ class SternaMap extends StatelessWidget {
   final List<Widget> children;
 
   SternaMap({
-    Key key,
-    this.controller,
-    Projection projection,
-    this.children,
-  })  : projection = projection ?? WebMercatorProjection(),
+    Key? key,
+    required this.controller,
+    Projection? projection,
+    required this.children,
+  })   : projection = projection ?? WebMercatorProjection(),
         transformation = Transformation(),
         super(key: key);
 
@@ -205,7 +206,7 @@ class SternaMap extends StatelessWidget {
   }
 
   static MapData of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<MapData>();
+    return context.dependOnInheritedWidgetOfExactType<MapData>()!;
   }
 }
 
@@ -217,12 +218,12 @@ class _ViewportAwareMap extends StatefulWidget {
   final List<Widget> children;
 
   _ViewportAwareMap({
-    Key key,
-    this.controller,
-    this.projection,
-    this.transformation,
-    this.viewport,
-    this.children,
+    Key? key,
+    required this.controller,
+    required this.projection,
+    required this.transformation,
+    required this.viewport,
+    required this.children,
   }) : super(key: key);
 
   @override
@@ -231,9 +232,9 @@ class _ViewportAwareMap extends StatefulWidget {
 
 class MapState extends State<_ViewportAwareMap>
     with SingleTickerProviderStateMixin {
-  MovingCamera _movingCamera;
-  AnimatedCamera _animatedCamera;
-  FitBoundsCamera _fitBoundsCamera;
+  late MovingCamera _movingCamera;
+  late AnimatedCamera _animatedCamera;
+  late FitBoundsCamera _fitBoundsCamera;
 
   Camera get camera => _fitBoundsCamera;
   BoundingBox get fitBounds => _fitBoundsCamera;
@@ -298,13 +299,13 @@ class MapState extends State<_ViewportAwareMap>
   }
 
   void moveCamera({
-    Latlng focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
+    Latlng? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
   }) {
-    Point<double> cameraFocal;
-    double cameraBearing;
+    Point<double>? cameraFocal;
+    double? cameraBearing;
 
     if (focal != null) {
       cameraFocal = widget.projection.projectCoordinates(focal);
@@ -323,14 +324,14 @@ class MapState extends State<_ViewportAwareMap>
   }
 
   void animateCamera({
-    Latlng focal,
-    double zoom,
-    double bearing,
-    Alignment alignment,
-    Duration duration,
+    Latlng? focal,
+    double? zoom,
+    double? bearing,
+    Alignment? alignment,
+    Duration? duration,
   }) {
-    Point<double> cameraFocal;
-    double cameraBearing;
+    Point<double>? cameraFocal;
+    double? cameraBearing;
 
     if (focal != null) {
       cameraFocal = widget.projection.projectCoordinates(focal);
@@ -368,11 +369,11 @@ class MapData extends InheritedWidget {
   final MapState state;
 
   MapData({
-    Key key,
-    this.projection,
-    this.transformation,
-    this.state,
-    Widget child,
+    Key? key,
+    required this.projection,
+    required this.transformation,
+    required this.state,
+    required Widget child,
   }) : super(key: key, child: child);
 
   @override
@@ -384,8 +385,8 @@ class _MapRenderObjectWidget extends MultiChildRenderObjectWidget {
   final MapState state;
 
   _MapRenderObjectWidget({
-    Key key,
-    this.state,
+    Key? key,
+    required this.state,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
 
@@ -403,10 +404,10 @@ class FitBounds extends StatefulWidget {
   final Widget child;
 
   FitBounds({
-    Key key,
-    this.bounds,
-    this.boundingBox,
-    this.child,
+    Key? key,
+    required this.bounds,
+    required this.boundingBox,
+    required this.child,
   }) : super(key: key);
 
   @override

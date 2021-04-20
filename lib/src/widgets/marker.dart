@@ -14,10 +14,12 @@ import 'layer.dart';
 import 'map.dart';
 
 abstract class MarkerPainter extends CustomPainter {
-  double zoom;
-  double bearing;
+  double? zoom;
+  double? bearing;
 
-  MarkerPainter({Listenable repaint}) : super(repaint: repaint);
+  MarkerPainter({
+    Listenable? repaint,
+  }) : super(repaint: repaint);
 
   Size get preferredSize;
   bool get dependsOnCameraZoom => false;
@@ -61,12 +63,12 @@ class Marker extends StatelessWidget {
   final bool rotateWithCamera;
   final bool addRepaintBoundary;
   final bool addFitBounds;
-  final MarkerPainter painter;
-  final Widget child;
+  final MarkerPainter? painter;
+  final Widget? child;
 
   const Marker({
-    Key key,
-    this.center,
+    Key? key,
+    required this.center,
     this.rotateWithCamera = false,
     this.addRepaintBoundary = false,
     this.addFitBounds = false,
@@ -81,19 +83,20 @@ class Marker extends StatelessWidget {
     final camera = map.state.camera;
 
     final coordinates = map.projection.projectCoordinates(center);
-    var result = child;
+    late Widget result;
 
-    if (painter != null) {
-      if (painter.dependsOnCamera) {
+    final painterx = painter;
+    if (painterx != null) {
+      if (painterx.dependsOnCamera) {
         result = AnimatedBuilder(
           animation: camera.where((visitor) {
-            if (painter.dependsOnCameraZoom) visitor(camera.zoom);
-            if (painter.dependsOnCameraZoomLevel) visitor(camera.zoom.toInt());
-            if (painter.dependsOnCameraBearing) visitor(camera.bearing);
+            if (painterx.dependsOnCameraZoom) visitor(camera.zoom);
+            if (painterx.dependsOnCameraZoomLevel) visitor(camera.zoom.toInt());
+            if (painterx.dependsOnCameraBearing) visitor(camera.bearing);
           }),
           builder: (_, __) => CustomPaint(
-            size: painter.preferredSize,
-            painter: painter
+            size: painterx.preferredSize,
+            painter: painterx
               ..zoom = camera.zoom
               ..bearing = camera.bearing,
             child: child,
@@ -101,11 +104,13 @@ class Marker extends StatelessWidget {
         );
       } else {
         result = CustomPaint(
-          size: painter.preferredSize,
+          size: painterx.preferredSize,
           painter: painter,
           child: child,
         );
       }
+    } else {
+      result = child!;
     }
 
     if (rotateWithCamera) {

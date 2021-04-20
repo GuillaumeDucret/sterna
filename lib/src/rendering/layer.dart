@@ -12,7 +12,7 @@ import '../transformation.dart';
 import '../widgets/map.dart';
 
 class LayerParentData extends ContainerBoxParentData<RenderBox> {
-  Point<double> center;
+  Point<double> center = Point(0, 0);
 }
 
 abstract class RenderLayer extends RenderBox
@@ -41,11 +41,11 @@ class RenderPlanLayer extends RenderLayer
   Alignment _alignment;
 
   RenderPlanLayer({
-    Transformation transformation,
-    Point<double> focal,
-    double zoom,
-    Alignment alignment,
-  })  : _transformation = transformation,
+    required Transformation transformation,
+    required Point<double> focal,
+    required double zoom,
+    required Alignment alignment,
+  })   : _transformation = transformation,
         _focal = focal,
         _zoom = zoom,
         _alignment = alignment;
@@ -90,7 +90,7 @@ class RenderPlanLayer extends RenderLayer
       zoom: _zoom,
     );
 
-    RenderBox child = firstChild;
+    RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = child.parentData as LayerParentData;
       child.layout(BoxConstraints.tightForFinite());
@@ -116,12 +116,12 @@ class RenderViewportLayer extends RenderLayer {
   Transformation _transformation;
   final MapState _state;
 
-  Rect _bounds;
+  late Rect _bounds;
 
   RenderViewportLayer({
-    Transformation transformation,
-    MapState state,
-  })  : _transformation = transformation,
+    required Transformation transformation,
+    required MapState state,
+  })   : _transformation = transformation,
         _state = state;
 
   set transformation(Transformation transformation) {
@@ -138,7 +138,7 @@ class RenderViewportLayer extends RenderLayer {
   void performLayout() {
     _bounds = Rect.fromLTWH(0, 0, size.width, size.height);
 
-    RenderBox child = firstChild;
+    RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = child.parentData as LayerParentData;
       child.layout(BoxConstraints.tightForFinite());
@@ -167,7 +167,7 @@ class RenderViewportLayer extends RenderLayer {
       zoom: _state.camera.zoom,
     );
 
-    RenderBox child = firstChild;
+    RenderBox? child = firstChild;
     while (child != null) {
       final childParentData = child.parentData as LayerParentData;
 

@@ -14,9 +14,9 @@ class MapPositionned extends ParentDataWidget<LayerParentData> {
   final Point<double> coordinates;
 
   const MapPositionned({
-    Key key,
-    this.coordinates,
-    Widget child,
+    Key? key,
+    required this.coordinates,
+    required Widget child,
   }) : super(key: key, child: child);
 
   @override
@@ -37,7 +37,7 @@ class Layer extends StatelessWidget {
   final List<Widget> children;
 
   Layer({
-    Key key,
+    Key? key,
     this.children = const <Widget>[],
   }) : super(key: key);
 
@@ -60,11 +60,11 @@ class PlanLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   final Alignment alignment;
 
   PlanLayerRenderObjectWidget({
-    Key key,
-    this.transformation,
-    this.focal,
-    this.zoom,
-    this.alignment,
+    Key? key,
+    required this.transformation,
+    required this.focal,
+    required this.zoom,
+    required this.alignment,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
 
@@ -94,9 +94,9 @@ class ViewportLayerRenderObjectWidget extends MultiChildRenderObjectWidget {
   final MapState state;
 
   ViewportLayerRenderObjectWidget({
-    Key key,
-    this.transformation,
-    this.state,
+    Key? key,
+    required this.transformation,
+    required this.state,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
 
